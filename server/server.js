@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const User = require("./models/userSchema"); 
+const User = require("./models/userSchema");
+const Auth = require("./models/authSchema");
 
 const app = express();
 app.use(express.json());
@@ -21,29 +22,42 @@ app.get("/", (req, res) => {
   res.send("Hello, Welcome to the Student-Alumni Platform!");
 });
 
-// app.get("/create", async (req, res) => {
-//   try {
-    
-//     let user_details = await User.create({
-//       name: "John Doe",
-//       email: "johnny@example.com",
-//       phone: "+1234567890",
-//       role: "alumni",
-//       profile_picture: "https://example.com/profile/johndoe.jpg",
-//       bio: "Software Engineer with 5 years of experience in full-stack development.",
-//       skills: ["JavaScript", "React", "Node.js", "MongoDB"],
-//       education: ["65c9a10f9a7b410001cfd123"],  // Use valid ObjectId references
-//       work_experience: ["65c9a10f9a7b410001cfd456"],  // Use valid ObjectId references
-//       linkedin_profile: "https://linkedin.com/in/johndoe"
-//     });
+app.post("/create/user_info", async (req, res) => {
+  console.log
+});
 
-//     res.status(201).json({ message: "✅ User created successfully!", user: user_details });
+app.post("/create/user", async (req, res) => {
+  console.log(req.body);
+  let auth_info = req.body;
+  try {
+    let auth_details = await Auth.create({
+      username: auth_info.username,  // Replace with a valid User ObjectId
+      email: auth_info.email,
+      password_hash: auth_info.password, // Hashed password
+      created_at: new Date(),
+      updated_at: new Date()
+    });
 
-//   } catch (error) {
-//     console.error("❌ Error creating user:", error);
-//     res.status(500).json({ message: "Internal server error", error: error.message });
-//   }
-// });
+    res.status(201).json({ message: "✅ User created successfully!", auth: auth_details });
+    res.send("Successfully created")
+
+  } catch (error) {
+    console.error("❌ Error creating user:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+})
+
+app.get("/user/:email", async (req, res) => {
+  try {
+    const user = await Auth.findOne({ email: req.params.email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user", error: error.message });
+  }
+});
 
 app.listen(3000, () => {
   connectToMongoDB();
