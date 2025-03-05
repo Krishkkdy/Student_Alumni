@@ -1,53 +1,21 @@
 import { useState } from "react";
-import axios from "axios";
-import "./App.css";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
-  const [userData, setUserData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
-  };
-
-  const registerUser = async () => {
-    try {
-      const res = await axios.post("http://localhost:3000/api/auth/signup", userData);
-      alert(res.data.message); // Show success message
-    } catch (error) {
-      alert(error.response?.data?.message || "Registration failed!");
-    }
-  };
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
   return (
-    <div className="text-3xl">
-      <h2>Register</h2>
-      <input
-        type="text"
-        name="username"
-        placeholder="Username"
-        value={userData.username}
-        onChange={handleChange}
-      />
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={userData.email}
-        onChange={handleChange}
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={userData.password}
-        onChange={handleChange}
-      />
-      <button onClick={registerUser}>Register</button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <Login setToken={setToken} />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={token ? <Dashboard setToken={setToken} /> : <Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
 }
 
