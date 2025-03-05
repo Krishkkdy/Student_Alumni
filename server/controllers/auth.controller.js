@@ -23,7 +23,17 @@ exports.signup = async (req, res) => {
             updated_at: new Date()
         });
 
-        res.status(201).json({ message: "✅ User registered successfully!", user: newUser });
+        // Return user data without sensitive information
+        const userData = {
+            name: newUser.username,
+            email: newUser.email,
+            created_at: newUser.created_at
+        };
+
+        res.status(201).json({ 
+            message: "✅ User registered successfully!", 
+            user: userData 
+        });
     } catch (error) {
         console.error("❌ Error registering user:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
@@ -31,7 +41,7 @@ exports.signup = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-    const JWT_SECRET = "harshhhh"
+    const JWT_SECRET = "harshhhh" // Note: In production, use environment variables for secrets
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -48,8 +58,27 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
-        res.status(200).json({ message: "✅ Login successful", token });
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user._id, email: user.email }, 
+            JWT_SECRET, 
+            { expiresIn: "1h" }
+        );
+
+        // Prepare user data without sensitive information
+        const userData = {
+            name: user.username,
+            email: user.email,
+            role: 'student', // You can add role management later
+            created_at: user.created_at
+        };
+
+        // Return both token and user data
+        res.status(200).json({
+            message: "✅ Login successful",
+            token,
+            user: userData
+        });
     } catch (error) {
         console.error("❌ Error logging in:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useUser } from "../UserContext";
 
 function Login({ setToken }) {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -9,6 +10,7 @@ function Login({ setToken }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { updateUser } = useUser();
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -16,17 +18,33 @@ function Login({ setToken }) {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
       const res = await axios.post("http://localhost:3000/api/auth/login", credentials);
+      
+      // Store token
       localStorage.setItem("token", res.data.token);
       setToken(res.data.token);
+
+      // Update user data using context
+      const userData = {
+        name: res.data.user.name || 'User',  // Fallback if name is not provided
+        email: res.data.user.email,
+        role: res.data.user.role || 'student', // Add role if your backend provides it
+        // Add any other user data you want to store
+      };
+      updateUser(userData);
+
       navigate("/dashboard");
     } catch (error) {
-      setError(error.response?.data?.message || "Login Failed!");
+      console.error('Login error:', error);
+      setError(
+        error.response?.data?.message || 
+        "Login failed. Please check your credentials and try again."
+      );
       setIsLoading(false);
     }
   };
