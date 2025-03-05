@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Auth', required: true },
     email: { type: String, unique: true, required: true },
     phone: { type: String },
-    role: { type: String, enum: ['student', 'alumni', 'admin'], required: true },
+    role: { type: String, enum: ['student', 'alumni'], required: true },
     profile_picture: { type: String },
     bio: { type: String },
     skills: { type: [String] },

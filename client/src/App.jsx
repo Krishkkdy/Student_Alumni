@@ -15,7 +15,7 @@ function App() {
 
   const registerUser = async () => {
     try {
-      const res = await axios.post("http://localhost:3000/login", userData);
+      const res = await axios.post("http://localhost:3000/api/auth/signup", userData);
       alert(res.data.message); // Show success message
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed!");
@@ -23,7 +23,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="text-3xl">
       <h2>Register</h2>
       <input
         type="text"
