@@ -1,16 +1,20 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("./models/userSchema");
 const Auth = require("./models/authSchema");
+const cors = require("cors");
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
+const JWT_SECRET = "your_secret_key_here"; // Replace with a strong secret key
 
 const connectToMongoDB = async () => {
   try {
-    await mongoose.connect("mongodb+srv://SGP:HVDVBBdNYpC8kDrX@studentalumni.aiy4n.mongodb.net/StudentAlumni", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+    await mongoose.connect("mongodb+srv://SGP:HVDVBBdNYpC8kDrX@studentalumni.aiy4n.mongodb.net/", {
     });
     console.log("✅ Connected To MongoDB");
   } catch (error) {
@@ -22,40 +26,58 @@ app.get("/", (req, res) => {
   res.send("Hello, Welcome to the Student-Alumni Platform!");
 });
 
-app.post("/create/user_info", async (req, res) => {
-  console.log
-});
-
-app.post("/create/user", async (req, res) => {
-  console.log(req.body);
-  let auth_info = req.body;
+// REGISTER API
+app.post("/register", async (req, res) => {
   try {
-    let auth_details = await Auth.create({
-      username: auth_info.username,  // Replace with a valid User ObjectId
-      email: auth_info.email,
-      password_hash: auth_info.password, // Hashed password
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    
+    const existingUser = await Auth.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await Auth.create({
+      username,
+      email,
+      password_hash: hashedPassword,
       created_at: new Date(),
       updated_at: new Date()
     });
 
-    res.status(201).json({ message: "✅ User created successfully!", auth: auth_details });
-    res.send("Successfully created")
-
+    res.status(201).json({ message: "✅ User registered successfully!", user: newUser });
   } catch (error) {
-    console.error("❌ Error creating user:", error);
+    console.error("❌ Error registering user:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
-})
+});
 
-app.get("/user/:email", async (req, res) => {
+// LOGIN API
+app.post("/login", async (req, res) => {
   try {
-    const user = await Auth.findOne({ email: req.params.email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
-    res.status(200).json(user);
+    
+    const user = await Auth.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+    res.status(200).json({ message: "✅ Login successful", token });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching user", error: error.message });
+    console.error("❌ Error logging in:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
 
