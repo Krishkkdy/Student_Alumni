@@ -1,6 +1,7 @@
 const Auth = require("../models/authSchema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const profile = require("../models/Profile");
 
 exports.signup = async (req, res) => {
     try {
@@ -22,6 +23,12 @@ exports.signup = async (req, res) => {
             created_at: new Date(),
             updated_at: new Date()
         });
+
+        const profiledata = await profile.create({
+            user : newUser._id,
+            username,
+            email,
+        })
 
         // Return user data without sensitive information
         const userData = {

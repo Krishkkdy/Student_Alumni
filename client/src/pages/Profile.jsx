@@ -35,7 +35,7 @@ const Profile = () => {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/profile/${user._id}`, {
+      const response = await axios.get(`http://localhost:3000/api/profile/${user.email}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -104,7 +104,7 @@ const Profile = () => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `/api/profile/${user._id}`,
+        `http://localhost:3000/api/profile/${user.email}`,
         profileData,
         {
           headers: {

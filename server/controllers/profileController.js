@@ -2,8 +2,10 @@ const Profile = require('../models/Profile');
 
 // Get profile
 const getProfile = async (req, res) => {
+  console.log(req.params);
+
   try {
-    const profile = await Profile.findOne({ user: req.params.userId });
+    const profile = await Profile.findOne({ email: req.params.userId });
     
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
@@ -20,7 +22,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const {
-      fullName,
+      username,
       email,
       graduationYear,
       currentPosition,
@@ -33,8 +35,7 @@ const updateProfile = async (req, res) => {
 
     // Build profile object
     const profileFields = {
-      user: req.params.userId,
-      fullName,
+      username,
       email,
       graduationYear,
       currentPosition,
@@ -50,7 +51,6 @@ const updateProfile = async (req, res) => {
     if (profile) {
       // Update
       profile = await Profile.findOneAndUpdate(
-        { user: req.params.userId },
         { $set: profileFields },
         { new: true }
       );

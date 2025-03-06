@@ -7,7 +7,7 @@ const profileSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  fullName: {
+  username: {
     type: String,
     required: true
   },
@@ -17,7 +17,7 @@ const profileSchema = new mongoose.Schema({
   },
   graduationYear: {
     type: String,
-    required: true
+    default: ''
   },
   currentPosition: {
     type: String,
