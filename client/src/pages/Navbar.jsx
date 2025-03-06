@@ -57,17 +57,6 @@ const Navbar = ({ handleLogout }) => {
               </div>
             </Link>
             <Link 
-              to="/dashboard/profile"
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive('/profile')}`}
-            >
-              <div className="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                <span>Profile</span>
-              </div>
-            </Link>
-            <Link 
               to="/dashboard/settings"
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive('/settings')}`}
             >

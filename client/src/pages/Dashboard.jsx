@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./Navbar";
+import Profile from "./Profile";
 
 // Dashboard Home Component
 const DashboardHome = () => (
@@ -53,56 +54,6 @@ const DashboardHome = () => (
       <p>© 2025 AlumniConnect. All rights reserved.</p>
     </footer>
   </>
-);
-
-// Profile Component
-const Profile = () => (
-  <div className="p-6">
-    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-      <h2 className="text-2xl font-bold mb-6 text-blue-600">My Profile</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-600 mb-1">Full Name</label>
-              <input type="text" className="w-full p-2 border rounded" placeholder="John Doe" />
-            </div>
-            <div>
-              <label className="block text-gray-600 mb-1">Email</label>
-              <input type="email" className="w-full p-2 border rounded" placeholder="john@example.com" />
-            </div>
-            <div>
-              <label className="block text-gray-600 mb-1">Graduation Year</label>
-              <input type="text" className="w-full p-2 border rounded" placeholder="2024" />
-            </div>
-          </div>
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Professional Information</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-600 mb-1">Current Position</label>
-              <input type="text" className="w-full p-2 border rounded" placeholder="Software Engineer" />
-            </div>
-            <div>
-              <label className="block text-gray-600 mb-1">Company</label>
-              <input type="text" className="w-full p-2 border rounded" placeholder="Tech Corp" />
-            </div>
-            <div>
-              <label className="block text-gray-600 mb-1">LinkedIn Profile</label>
-              <input type="url" className="w-full p-2 border rounded" placeholder="https://linkedin.com/in/..." />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="mt-8 flex justify-end">
-        <button className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-          Save Changes
-        </button>
-      </div>
-    </div>
-  </div>
 );
 
 // Settings Component
