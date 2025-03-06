@@ -1,7 +1,8 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const connectToMongoDB = require("./db/connectToMongoDB");
+
 require('dotenv').config();
 
 const app = express();
@@ -21,13 +22,6 @@ if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Routes
 const authRoutes = require('./routes/auth.routes');
@@ -47,8 +41,9 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start server
+// Start serve
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+    connectToMongoDB();
     console.log(`✅ Server is running on port ${PORT}`);
 });

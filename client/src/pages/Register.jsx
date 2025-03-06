@@ -49,11 +49,7 @@ function Register() {
 
     try {
       const res = await axios.post("http://localhost:3000/api/auth/signup", userData);
-      navigate("/login", { 
-        state: { 
-          message: "Registration Successful! Please log in." 
-        } 
-      });
+      navigate("/login", { state: { successMessage: "Successfully registered! Please log in." } });
     } catch (error) {
       setError(error.response?.data?.message || "Registration failed!");
       setIsLoading(false);
