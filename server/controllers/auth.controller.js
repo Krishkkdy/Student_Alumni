@@ -24,9 +24,9 @@ exports.signup = async (req, res) => {
             updated_at: new Date()
         });
 
-        // Ensure user_id is correctly assigned
+        // Create profile with user field instead of user_id
         const profiledata = await Profile.create({
-            user_id: newUser._id,
+            user: newUser._id,  // Changed from user_id to user
             username,
             email,
         });
@@ -70,7 +70,7 @@ exports.createProfile = async (req, res) => {
         }
 
         // Check if a profile already exists for the user
-        const existingProfile = await Profile.findOne({ user_id: id });
+        const existingProfile = await Profile.findOne({ user: id });
         if (existingProfile) {
             return res.status(400).json({ message: "Profile already exists for this user" });
         }
@@ -82,7 +82,7 @@ exports.createProfile = async (req, res) => {
             username: user_details.username,
             email: user_details.email,
             fullName: user_details.username,  // Assuming fullName is the same as username
-            user_id: user_details._id // ✅ Assign the correct user ID dynamically
+            user: user_details._id // Changed from user_id to user
         });
 
         res.status(201).json({
