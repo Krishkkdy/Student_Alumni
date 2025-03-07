@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const profileSchema = new mongoose.Schema({
-  user: {
+  user_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Auth',
     required: true,
     unique: true
   },
@@ -11,9 +11,17 @@ const profileSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  fullName:{
+    type: String,
+    required: true,
+    default: function () {
+      return this.username; // Use a function to reference another field
+    }
+  },
   email: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   graduationYear: {
     type: String,

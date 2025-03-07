@@ -9,6 +9,7 @@ function Register() {
     email: "", 
     password: "" 
   });
+
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,23 +39,22 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     
-    // Basic client-side validation
     if (passwordStrength < 3) {
-      setError("Password is too weak. Please use a stronger password.");
-      return;
+        setError("Password is too weak. Please use a stronger password.");
+        return;
     }
 
     setIsLoading(true);
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/signup", userData);
-      navigate("/login", { state: { successMessage: "Successfully registered! Please log in." } });
+        const res = await axios.post("http://localhost:3000/api/auth/signup", userData);
+        navigate("/login", { state: { successMessage: "Successfully registered! Please log in." } });
     } catch (error) {
-      setError(error.response?.data?.message || "Registration failed!");
-      setIsLoading(false);
+        setError(error.response?.data?.message || "Registration failed! Please check your connection.");
+        setIsLoading(false);
     }
-  };
+};
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {

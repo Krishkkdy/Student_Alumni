@@ -1,7 +1,7 @@
 const Auth = require("../models/authSchema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const profile = require("../models/Profile");
+const Profile = require("../models/Profile");  // Fixed capitalization for consistency
 
 exports.signup = async (req, res) => {
     try {
@@ -24,13 +24,13 @@ exports.signup = async (req, res) => {
             updated_at: new Date()
         });
 
-        const profiledata = await profile.create({
-            user : newUser._id,
+        // Ensure user_id is correctly assigned
+        const profiledata = await Profile.create({
+            user_id: newUser._id,
             username,
             email,
-        })
+        });
 
-        // Return user data without sensitive information
         const userData = {
             name: newUser.username,
             email: newUser.email,
@@ -46,6 +46,56 @@ exports.signup = async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 }
+
+exports.createProfile = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        // Validate that the ID is present in the request
+        if (!id) {
+            return res.status(400).json({ message: "User ID is required in params" });
+        }
+
+        // Check if the user exists
+        const user_details = await Auth.findById(id);
+        if (!user_details) {
+            return res.status(404).json({ message: "User not found in database" });
+        }
+
+        console.log("User found:", user_details); // Debugging log
+
+        // Ensure `user_id` is properly assigned
+        if (!user_details._id) {
+            return res.status(500).json({ message: "User ID is missing in database record" });
+        }
+
+        // Check if a profile already exists for the user
+        const existingProfile = await Profile.findOne({ user_id: id });
+        if (existingProfile) {
+            return res.status(400).json({ message: "Profile already exists for this user" });
+        }
+
+        console.log("Creating profile for user:", user_details._id); // Debugging log
+
+        // Create a new profile
+        const newUserProfile = await Profile.create({
+            username: user_details.username,
+            email: user_details.email,
+            fullName: user_details.username,  // Assuming fullName is the same as username
+            user_id: user_details._id // ✅ Assign the correct user ID dynamically
+        });
+
+        res.status(201).json({
+            message: "✅ User Profile created successfully!",
+            id: newUserProfile._id
+        });
+
+    } catch (error) {
+        console.error("❌ Error creating user profile:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
 
 exports.login = async (req, res) => {
     const JWT_SECRET = "harshhhh" // Note: In production, use environment variables for secrets

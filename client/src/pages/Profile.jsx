@@ -10,6 +10,7 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({
     fullName: '',
     email: '',
+    username: '',
     graduationYear: '',
     currentPosition: '',
     company: '',
@@ -25,7 +26,8 @@ const Profile = () => {
       setProfileData(prevData => ({
         ...prevData,
         fullName: user.name || '',
-        email: user.email || ''
+        email: user.email || '',
+        username: user.username || ''
       }));
       // Fetch additional profile data
       fetchProfileData();
@@ -81,7 +83,7 @@ const Profile = () => {
   };
 
   const validateForm = () => {
-    const requiredFields = ['fullName', 'graduationYear'];
+    const requiredFields = ['fullName', 'username'];
     const missingFields = requiredFields.filter(field => !profileData[field]);
     
     if (missingFields.length > 0) {
@@ -101,17 +103,46 @@ const Profile = () => {
       return;
     }
 
+    const profilePayload = {
+      user_id: user._id,
+      username: profileData.username,
+      fullName: profileData.fullName,
+      email: profileData.email,
+      graduationYear: profileData.graduationYear,
+      currentPosition: profileData.currentPosition,
+      company: profileData.company,
+      linkedinProfile: profileData.linkedinProfile,
+      bio: profileData.bio,
+      skills: profileData.skills,
+      interests: profileData.interests
+    };
+
     try {
       setLoading(true);
-      const response = await axios.put(
-        `http://localhost:3000/api/profile/${user.email}`,
-        profileData,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+      let response;
+      
+      // Check if we're creating or updating
+      if (profileData._id) {
+        response = await axios.put(
+          `http://localhost:3000/api/profile/${profileData.email}`,
+          profilePayload,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
           }
-        }
-      );
+        );
+      } else {
+        response = await axios.post(
+          'http://localhost:3000/api/profile',
+          profilePayload,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+      }
       
       setProfileData(response.data);
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
@@ -132,227 +163,283 @@ const Profile = () => {
     }
   };
 
-  if (loading && !profileData.fullName) {
-    return (
-      <div className="flex justify-center items-center h-full min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-8">
-        {message.text && (
-          <div 
-            className={`mb-4 p-3 rounded ${
-              message.type === 'success' 
-                ? 'bg-green-100 text-green-700 border border-green-400' 
-                : 'bg-red-100 text-red-700 border border-red-400'
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
-
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-blue-600">My Profile</h2>
-          <button
-            onClick={() => {
-              setIsEditing(!isEditing);
-              if (isEditing) {
-                // Reset form when canceling
-                fetchProfileData();
-              }
-            }}
-            className={`px-4 py-2 text-sm rounded-md ${
-              isEditing 
-                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-            }`}
-          >
-            {isEditing ? 'Cancel' : 'Edit Profile'}
-          </button>
+    <div className="container mx-auto p-4 max-w-3xl">
+      <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+      
+      {message.text && (
+        <div className={`p-4 mb-4 rounded ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {message.text}
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-              <div className="space-y-4">
+      )}
+      
+      {loading ? (
+        <div className="flex justify-center">
+          <p>Loading profile data...</p>
+        </div>
+      ) : (
+        <>
+          {!isEditing ? (
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Profile Information</h2>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Edit Profile
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-gray-600 mb-1">
+                  <p className="text-gray-600 font-medium">Username</p>
+                  <p className="text-gray-800">{profileData.username || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Full Name</p>
+                  <p className="text-gray-800">{profileData.fullName || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Email</p>
+                  <p className="text-gray-800">{profileData.email || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Graduation Year</p>
+                  <p className="text-gray-800">{profileData.graduationYear || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Current Position</p>
+                  <p className="text-gray-800">{profileData.currentPosition || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Company</p>
+                  <p className="text-gray-800">{profileData.company || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">LinkedIn Profile</p>
+                  <p className="text-gray-800">
+                    {profileData.linkedinProfile ? (
+                      <a 
+                        href={profileData.linkedinProfile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        View Profile
+                      </a>
+                    ) : '-'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <p className="text-gray-600 font-medium">Bio</p>
+                <p className="text-gray-800">{profileData.bio || '-'}</p>
+              </div>
+              
+              <div className="mt-6">
+                <p className="text-gray-600 font-medium">Skills</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {profileData.skills && profileData.skills.length > 0 ? (
+                    profileData.skills.map((skill, index) => (
+                      <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                        {skill}
+                      </span>
+                    ))
+                  ) : <p className="text-gray-800">-</p>}
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <p className="text-gray-600 font-medium">Interests</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {profileData.interests && profileData.interests.length > 0 ? (
+                    profileData.interests.map((interest, index) => (
+                      <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                        {interest}
+                      </span>
+                    ))
+                  ) : <p className="text-gray-800">-</p>}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Edit Profile</h2>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded mr-2"
+                >
+                  Cancel
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="username" className="block text-gray-700 font-medium mb-1">
+                    Username <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={profileData.username}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="fullName" className="block text-gray-700 font-medium mb-1">
                     Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
+                    id="fullName"
                     name="fullName"
                     value={profileData.fullName}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-600 mb-1">Email</label>
+                  <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
+                    Email
+                  </label>
                   <input
                     type="email"
+                    id="email"
                     name="email"
                     value={profileData.email}
-                    disabled
-                    className="w-full p-2 border rounded bg-gray-50"
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
                   />
+                  <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
                 </div>
                 <div>
-                  <label className="block text-gray-600 mb-1">
-                    Graduation Year <span className="text-red-500">*</span>
+                  <label htmlFor="graduationYear" className="block text-gray-700 font-medium mb-1">
+                    Graduation Year
                   </label>
                   <input
                     type="text"
+                    id="graduationYear"
                     name="graduationYear"
                     value={profileData.graduationYear}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
-                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. 2023"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-600 mb-1">Bio</label>
-                  <textarea
-                    name="bio"
-                    value={profileData.bio}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    rows="4"
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
-                    placeholder={isEditing ? "Tell us about yourself..." : ""}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Professional Information</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-gray-600 mb-1">Current Position</label>
+                  <label htmlFor="currentPosition" className="block text-gray-700 font-medium mb-1">
+                    Current Position
+                  </label>
                   <input
                     type="text"
+                    id="currentPosition"
                     name="currentPosition"
                     value={profileData.currentPosition}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Software Engineer"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-600 mb-1">Company</label>
+                  <label htmlFor="company" className="block text-gray-700 font-medium mb-1">
+                    Company
+                  </label>
                   <input
                     type="text"
+                    id="company"
                     name="company"
                     value={profileData.company}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Tech Company Inc."
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-600 mb-1">LinkedIn Profile</label>
+                  <label htmlFor="linkedinProfile" className="block text-gray-700 font-medium mb-1">
+                    LinkedIn Profile
+                  </label>
                   <input
                     type="url"
+                    id="linkedinProfile"
                     name="linkedinProfile"
                     value={profileData.linkedinProfile}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
-                    placeholder={isEditing ? "https://linkedin.com/in/your-profile" : ""}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-600 mb-1">Skills (comma-separated)</label>
-                  <input
-                    type="text"
-                    name="skills"
-                    value={profileData.skills.join(', ')}
-                    onChange={handleSkillChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
-                    placeholder={isEditing ? "e.g., JavaScript, React, Node.js" : ""}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-600 mb-1">Interests (comma-separated)</label>
-                  <input
-                    type="text"
-                    name="interests"
-                    value={profileData.interests.join(', ')}
-                    onChange={handleInterestChange}
-                    disabled={!isEditing}
-                    className={`w-full p-2 border rounded ${
-                      isEditing 
-                        ? 'focus:ring-2 focus:ring-blue-400' 
-                        : 'bg-gray-50'
-                    }`}
-                    placeholder={isEditing ? "e.g., Web Development, AI, Cloud Computing" : ""}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://linkedin.com/in/yourprofile"
                   />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {isEditing && (
-            <div className="mt-8 flex justify-end">
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </span>
-                ) : 'Save Changes'}
-              </button>
-            </div>
+              
+              <div className="mt-6">
+                <label htmlFor="bio" className="block text-gray-700 font-medium mb-1">
+                  Bio
+                </label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  value={profileData.bio}
+                  onChange={handleInputChange}
+                  rows="4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Tell us about yourself..."
+                ></textarea>
+              </div>
+              
+              <div className="mt-6">
+                <label htmlFor="skills" className="block text-gray-700 font-medium mb-1">
+                  Skills (comma separated)
+                </label>
+                <input
+                  type="text"
+                  id="skills"
+                  name="skills"
+                  value={profileData.skills.join(', ')}
+                  onChange={handleSkillChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. React, JavaScript, Node.js"
+                />
+                <p className="text-sm text-gray-500 mt-1">Separate skills with commas</p>
+              </div>
+              
+              <div className="mt-6">
+                <label htmlFor="interests" className="block text-gray-700 font-medium mb-1">
+                  Interests (comma separated)
+                </label>
+                <input
+                  type="text"
+                  id="interests"
+                  name="interests"
+                  value={profileData.interests.join(', ')}
+                  onChange={handleInterestChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. Blockchain, AI, Machine Learning"
+                />
+                <p className="text-sm text-gray-500 mt-1">Separate interests with commas</p>
+              </div>
+              
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded font-medium"
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </form>
           )}
-        </form>
-      </div>
+        </>
+      )}
     </div>
   );
 };
 
-export default Profile; 
+export default Profile;
