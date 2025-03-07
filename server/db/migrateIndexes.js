@@ -33,4 +33,4 @@ async function migrateIndexes() {
     }
 }
 
-migrateIndexes(); 
+migrateIndexes();
