@@ -10,9 +10,88 @@ import {
   CheckCircle, 
   XCircle,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle
 } from 'lucide-react';
 import AddUserModal from './AddUserModal';
+
+// Delete Confirmation Modal Component
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, username }) => {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div 
+        className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm transition-all duration-300"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div 
+          className="bg-white rounded-2xl shadow-lg w-full max-w-md transform transition-all duration-300 scale-100 animate-fadeIn"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Header with integrated close button */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="w-8" /> {/* Spacer for centering */}
+            <h2 className="text-lg font-semibold text-gray-900">Delete Account</h2>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200"
+            >
+              <XCircle className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="p-6">
+            <div className="text-center">
+              <div className="mx-auto mb-6 w-16 h-16 bg-red-50 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-gray-600">
+                    Are you sure you want to delete this account?
+                  </p>
+                  <div className="inline-block bg-gray-50 rounded-xl p-3 border-2 border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold">
+                          {username?.charAt(0).toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                      <span className="text-gray-900 font-medium">
+                        {username}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-red-600 text-sm font-medium">
+                    This action cannot be undone
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8 flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transform hover:scale-[1.02] transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-red-500/30"
+                >
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -22,6 +101,7 @@ function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -62,8 +142,6 @@ function AdminDashboard() {
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`http://localhost:3000/api/admin/users/${userId}`, {
@@ -71,6 +149,7 @@ function AdminDashboard() {
       });
       setUsers(users.filter(user => user._id !== userId));
       setError('');
+      setUserToDelete(null);
     } catch (err) {
       setError('Failed to delete user. Please try again.');
       console.error('Error deleting user:', err);
@@ -254,7 +333,7 @@ function AdminDashboard() {
                             <Edit2 className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteUser(user._id)}
+                            onClick={() => setUserToDelete(user)}
                             className="text-red-600 hover:text-red-900 transform hover:scale-110 transition-all duration-200"
                           >
                             <Trash2 className="h-5 w-5" />
@@ -268,6 +347,14 @@ function AdminDashboard() {
             </table>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={userToDelete !== null}
+          onClose={() => setUserToDelete(null)}
+          onConfirm={() => handleDeleteUser(userToDelete?._id)}
+          username={userToDelete?.username}
+        />
 
         {/* Add User Modal */}
         <AddUserModal
