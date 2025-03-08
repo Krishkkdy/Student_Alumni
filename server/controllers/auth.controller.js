@@ -115,18 +115,25 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
+        // Check if user is admin
+        const role = email === 'admin@example.com' ? 'admin' : 'user';
+
         // Generate JWT token
         const token = jwt.sign(
-            { userId: user._id, email: user.email }, 
+            { userId: user._id, email: user.email, role }, 
             JWT_SECRET, 
             { expiresIn: "1h" }
         );
+
+        // Update last login
+        user.updated_at = new Date();
+        await user.save();
 
         // Prepare user data without sensitive information
         const userData = {
             name: user.username,
             email: user.email,
-            role: 'student', // You can add role management later
+            role: role,
             created_at: user.created_at
         };
 

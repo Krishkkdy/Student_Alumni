@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Settings, Bell, LogOut, User, ChevronDown } from 'lucide-react';
+import { Home, Settings, Bell, LogOut, User, ChevronDown, Shield } from 'lucide-react';
 
 const Navbar = ({ handleLogout }) => {
   const location = useLocation();
@@ -65,6 +65,21 @@ const Navbar = ({ handleLogout }) => {
                 <span>Dashboard</span>
               </Link>
             </motion.div>
+            {user?.role === 'admin' && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link 
+                  to="/admin"
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
+                    location.pathname.startsWith('/admin') ? 
+                    'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 border-b-2 border-blue-600' : 
+                    'text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-purple-500/5'
+                  }`}
+                >
+                  <Shield size={18} />
+                  <span>Admin</span>
+                </Link>
+              </motion.div>
+            )}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link 
                 to="/dashboard/settings"

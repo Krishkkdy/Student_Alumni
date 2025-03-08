@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { UserProvider } from "./UserContext";
+import { UserProvider, useUser } from "./UserContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
+// Protected Route Component for Admin
+const AdminRoute = ({ children }) => {
+  const { user } = useUser();
+  
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/dashboard" />;
+  }
+  
+  return children;
+};
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -31,6 +43,18 @@ function App() {
           <Route 
             path="/dashboard/*" 
             element={token ? <Dashboard handleLogout={handleLogout} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/admin/*" 
+            element={
+              token ? (
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              ) : (
+                <Navigate to="/login" />
+              )
+            } 
           />
         </Routes>
       </Router>
