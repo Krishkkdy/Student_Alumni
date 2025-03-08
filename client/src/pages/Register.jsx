@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { User, Mail, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Shield } from "lucide-react";
 
 function Register() {
   const [userData, setUserData] = useState({ 
@@ -76,18 +76,18 @@ function Register() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden">
+        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800">Create Account</h2>
-              <p className="text-gray-500 mt-2">Sign up to get started</p>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
+              <p className="text-gray-600">Join our community today</p>
             </div>
             
-            <form onSubmit={handleRegister} className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-6">
               {/* Username Input */}
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="text-gray-400 h-5 w-5" />
+                  <User className="text-gray-400 h-5 w-5 group-hover:text-purple-500 transition-colors duration-200" />
                 </div>
                 <input 
                   type="text" 
@@ -97,14 +97,14 @@ function Register() {
                   onChange={handleChange}
                   required
                   minLength={3}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 hover:border-purple-300"
                 />
               </div>
 
               {/* Email Input */}
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="text-gray-400 h-5 w-5" />
+                  <Mail className="text-gray-400 h-5 w-5 group-hover:text-purple-500 transition-colors duration-200" />
                 </div>
                 <input 
                   type="email" 
@@ -113,14 +113,14 @@ function Register() {
                   value={userData.email} 
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 hover:border-purple-300"
                 />
               </div>
 
               {/* Password Input */}
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="text-gray-400 h-5 w-5" />
+                  <Lock className="text-gray-400 h-5 w-5 group-hover:text-purple-500 transition-colors duration-200" />
                 </div>
                 <input 
                   type={showPassword ? "text" : "password"} 
@@ -130,50 +130,64 @@ function Register() {
                   onChange={handleChange}
                   required
                   minLength={8}
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 hover:border-purple-300"
                 />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-purple-500 transition"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-purple-500 transition-colors duration-200"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
 
-              {/* Password Strength Indicator */}
-              <div className="flex space-x-1 h-1.5">
-                {[1, 2, 3, 4, 5].map((section) => (
-                  <div 
-                    key={section} 
-                    className={`flex-1 rounded-full ${
-                      section <= passwordStrength 
-                        ? getPasswordStrengthColor() 
-                        : "bg-gray-200"
-                    } transition-colors duration-300`}
-                  />
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {passwordStrength === 0 && "Password is very weak"}
-                {passwordStrength === 1 && "Password is weak"}
-                {passwordStrength === 2 && "Password is moderate"}
-                {passwordStrength === 3 && "Password is strong"}
-                {passwordStrength >= 4 && "Password is very strong"}
-              </p>
-
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-center">
-                  {error}
+                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-center space-x-2 transition-all duration-300">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  <span>{error}</span>
                 </div>
               )}
+
+              {/* Password Strength Indicator */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Shield className={`h-4 w-4 transition-colors duration-300 ${
+                    passwordStrength >= 3 ? 'text-purple-500' : 'text-gray-400'
+                  }`} />
+                  <span className="text-sm text-gray-600">Password Strength</span>
+                </div>
+                <div className="flex space-x-1 h-1.5">
+                  {[1, 2, 3, 4, 5].map((section) => (
+                    <div 
+                      key={section} 
+                      className={`flex-1 rounded-full transition-all duration-300 ${
+                        section <= passwordStrength 
+                          ? getPasswordStrengthColor() 
+                          : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className={`text-sm transition-colors duration-300 flex items-center space-x-1 ${
+                  passwordStrength >= 3 ? 'text-purple-600' : 'text-gray-500'
+                }`}>
+                  {passwordStrength >= 3 && <CheckCircle2 className="h-4 w-4" />}
+                  <span>
+                    {passwordStrength === 0 && "Password is very weak"}
+                    {passwordStrength === 1 && "Password is weak"}
+                    {passwordStrength === 2 && "Password is moderate"}
+                    {passwordStrength === 3 && "Password is strong"}
+                    {passwordStrength >= 4 && "Password is very strong"}
+                  </span>
+                </p>
+              </div>
 
               {/* Register Button */}
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
+                className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {isLoading ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -187,14 +201,14 @@ function Register() {
             </form>
 
             {/* Login Link */}
-            <div className="text-center mt-6">
+            <div className="text-center mt-8">
               <p className="text-gray-600">
-                Already have an account? {" "}
+                Already have an account?{" "}
                 <a 
                   href="/login" 
-                  className="text-purple-600 hover:underline font-semibold"
+                  className="text-purple-600 hover:text-purple-700 font-semibold hover:underline transition-all duration-200"
                 >
-                  Login here
+                  Sign in here
                 </a>
               </p>
             </div>

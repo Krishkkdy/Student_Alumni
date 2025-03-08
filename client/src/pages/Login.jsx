@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
 import { useUser } from "../UserContext";
 
 function Login({ setToken }) {
@@ -54,25 +54,26 @@ function Login({ setToken }) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden">
+        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="p-8">
             <div>
               {successMessage && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4">
-                  {successMessage}
+                <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-6 flex items-center space-x-2 transition-all duration-300 transform translate-y-0 opacity-100">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <span>{successMessage}</span>
                 </div>
               )}
             </div>
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800">Welcome Back</h2>
-              <p className="text-gray-500 mt-2">Sign in to continue</p>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
+              <p className="text-gray-600">Sign in to your account to continue</p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-6">
               {/* Email Input */}
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="text-gray-400 h-5 w-5" />
+                  <Mail className="text-gray-400 h-5 w-5 group-hover:text-blue-500 transition-colors duration-200" />
                 </div>
                 <input
                   type="email"
@@ -81,14 +82,14 @@ function Login({ setToken }) {
                   value={credentials.email}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-blue-300"
                 />
               </div>
 
               {/* Password Input */}
-              <div className="relative">
+              <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="text-gray-400 h-5 w-5" />
+                  <Lock className="text-gray-400 h-5 w-5 group-hover:text-blue-500 transition-colors duration-200" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -97,12 +98,12 @@ function Login({ setToken }) {
                   value={credentials.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-blue-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-500 transition"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-500 transition-colors duration-200"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -110,8 +111,9 @@ function Login({ setToken }) {
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-center">
-                  {error}
+                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-center space-x-2 transition-all duration-300">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -119,7 +121,7 @@ function Login({ setToken }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
+                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {isLoading ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -127,20 +129,20 @@ function Login({ setToken }) {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 ) : (
-                  "Login"
+                  "Sign In"
                 )}
               </button>
             </form>
 
             {/* Registration Link */}
-            <div className="text-center mt-6">
+            <div className="text-center mt-8">
               <p className="text-gray-600">
-                Don't have an account? {" "}
+                Don't have an account?{" "}
                 <a
                   href="/register"
-                  className="text-blue-600 hover:underline font-semibold"
+                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-all duration-200"
                 >
-                  Register here
+                  Create one now
                 </a>
               </p>
             </div>
