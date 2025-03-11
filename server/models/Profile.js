@@ -48,7 +48,15 @@ const profileSchema = new mongoose.Schema({
   }],
   interests: [{
     type: String
-  }]
+  }],
+  profileImage: {
+    type: String,
+    default: null
+  },
+  coverImage: {
+    type: String,
+    default: null
+  }
 }, {
   timestamps: true
 });

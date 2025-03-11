@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import EditProfile from './pages/EditProfile';
+import Profile from './pages/Profile';
 
 // Protected Route Component for Admin
 const AdminRoute = ({ children }) => {
@@ -56,6 +58,8 @@ function App() {
               )
             } 
           />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
         </Routes>
       </Router>
     </UserProvider>

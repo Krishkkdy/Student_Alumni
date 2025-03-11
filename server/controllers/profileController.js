@@ -18,8 +18,7 @@ const getProfile = async (req, res) => {
 const postProfile = async (req, res) => {
   try {
     // Check if profile already exists
-    const existingProfile = await Profile.findOne({ user_id: req.body.user_id });
-    
+    const existingProfile = await Profile.findOne({ _id: req.body._id });
     if (existingProfile) {
       return res.status(400).json({ message: 'Profile already exists for this user' });
     }
@@ -48,6 +47,7 @@ const postProfile = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
+  console.log(req.body);
   try {
     const profile = await Profile.findOne({ email: req.params.userId });
     
@@ -67,7 +67,23 @@ const updateProfile = async (req, res) => {
     profile.skills = req.body.skills || [];
     profile.interests = req.body.interests || [];
     
+    // Update image fields with new structure
+    if (req.body.profileImage) {
+      profile.profileImage = {
+        url: req.body.profileImage.url || '',
+        publicId: req.body.profileImage.publicId || ''
+      };
+    }
+    
+    if (req.body.coverImage) {
+      profile.coverImage = {
+        url: req.body.coverImage.url || '',
+        publicId: req.body.coverImage.publicId || ''
+      };
+    }
+    
     const updatedProfile = await profile.save();
+    console.log(updatedProfile);
     res.json(updatedProfile);
   } catch (error) {
     console.error('Error updating profile:', error);
@@ -95,5 +111,5 @@ module.exports = {
   getProfile,
   postProfile,
   updateProfile,
-  deleteProfile
+  deleteProfile,
 }; 
