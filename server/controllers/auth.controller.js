@@ -5,7 +5,7 @@ const Profile = require("../models/Profile");  // Fixed capitalization for consi
 
 exports.signup = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, role = 'student' } = req.body;
         if (!username || !email || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
@@ -24,16 +24,18 @@ exports.signup = async (req, res) => {
             updated_at: new Date()
         });
 
-        // Create profile with user field instead of user_id
+        // Create profile with role
         const profiledata = await Profile.create({
-            user: newUser._id,  // Changed from user_id to user
+            user: newUser._id,
             username,
             email,
+            role,
         });
 
         const userData = {
             name: newUser.username,
             email: newUser.email,
+            role: role,
             created_at: newUser.created_at
         };
 
@@ -50,39 +52,28 @@ exports.signup = async (req, res) => {
 exports.createProfile = async (req, res) => {
     try {
         const id = req.params.id;
+        const { role = 'student' } = req.body;
 
-        // Validate that the ID is present in the request
         if (!id) {
             return res.status(400).json({ message: "User ID is required in params" });
         }
 
-        // Check if the user exists
         const user_details = await Auth.findById(id);
         if (!user_details) {
             return res.status(404).json({ message: "User not found in database" });
         }
 
-        console.log("User found:", user_details); // Debugging log
-
-        // Ensure `user_id` is properly assigned
-        if (!user_details._id) {
-            return res.status(500).json({ message: "User ID is missing in database record" });
-        }
-
-        // Check if a profile already exists for the user
         const existingProfile = await Profile.findOne({ user: id });
         if (existingProfile) {
             return res.status(400).json({ message: "Profile already exists for this user" });
         }
 
-        console.log("Creating profile for user:", user_details._id); // Debugging log
-
-        // Create a new profile
         const newUserProfile = await Profile.create({
             username: user_details.username,
             email: user_details.email,
-            fullName: user_details.username,  // Assuming fullName is the same as username
-            user: user_details._id // Changed from user_id to user
+            fullName: user_details.username,
+            role: role,
+            user: user_details._id
         });
 
         res.status(201).json({
@@ -95,7 +86,6 @@ exports.createProfile = async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
-
 
 exports.login = async (req, res) => {
     const JWT_SECRET = "harshhhh" // Note: In production, use environment variables for secrets
@@ -115,8 +105,9 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        // Check if user is admin
-        const role = email === 'admin@example.com' ? 'admin' : 'user';
+        // Get user profile to check role
+        const profile = await Profile.findOne({ user: user._id });
+        const role = email === 'admin@example.com' ? 'admin' : (profile?.role || 'student');
 
         // Generate JWT token
         const token = jwt.sign(

@@ -1,60 +1,87 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 import Navbar from "./Navbar";
 import Profile from "./Profile";
+import { useUser } from "../UserContext";
+import { GraduationCap } from "lucide-react";
 
 // Dashboard Home Component
-const DashboardHome = () => (
-  <>
-    {/* Hero Section */}
-    <section className="w-screen bg-blue-600 text-white text-center py-24 mt-0">
-      <h2 className="text-4xl font-bold">Connect. Learn. Grow.</h2>
-      <p className="mt-2 text-lg">An intelligent platform to interconnect Alumni & Students.</p>
-      <button className="mt-6 bg-white text-blue-600 px-6 py-2 rounded-md font-semibold hover:bg-gray-200">
-        Get Started
-      </button>
-    </section>
+const DashboardHome = () => {
+  const { user } = useUser();
+  
+  return (
+    <>
+      {/* Hero Section */}
+      <section className="w-screen bg-blue-600 text-white text-center py-24 mt-0">
+        <h2 className="text-4xl font-bold">Connect. Learn. Grow.</h2>
+        <p className="mt-2 text-lg">An intelligent platform to interconnect Alumni & Students.</p>
+        
+        {user?.role === 'alumni' && (
+          <Link to="/alumni" className="mt-6 bg-white text-blue-600 px-6 py-2 rounded-md font-semibold hover:bg-gray-200 inline-flex items-center">
+            <GraduationCap className="mr-2" size={18} />
+            Go to Alumni Portal
+          </Link>
+        )}
+        {!user?.role || user.role !== 'alumni' ? (
+          <button className="mt-6 bg-white text-blue-600 px-6 py-2 rounded-md font-semibold hover:bg-gray-200">
+            Get Started
+          </button>
+        ) : null}
+      </section>
 
-    {/* Features Section */}
-    <section className="w-screen bg-gray-100 py-12 flex flex-col md:flex-row justify-center gap-6 px-6">
-      <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
-        <h3 className="text-lg font-semibold text-blue-600">Mentorship</h3>
-        <p className="text-gray-600 mt-2">Get career advice from alumni.</p>
-      </div>
+      {/* Features Section */}
+      <section className="w-screen bg-gray-100 py-12 flex flex-col md:flex-row justify-center gap-6 px-6">
+        <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
+          <h3 className="text-lg font-semibold text-blue-600">Mentorship</h3>
+          <p className="text-gray-600 mt-2">Get career advice from alumni.</p>
+        </div>
 
-      <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
-        <h3 className="text-lg font-semibold text-blue-600">Jobs & Internships</h3>
-        <p className="text-gray-600 mt-2">Find opportunities shared by alumni.</p>
-      </div>
+        <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
+          <h3 className="text-lg font-semibold text-blue-600">Jobs & Internships</h3>
+          <p className="text-gray-600 mt-2">Find opportunities shared by alumni.</p>
+        </div>
 
-      <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
-        <h3 className="text-lg font-semibold text-blue-600">Networking</h3>
-        <p className="text-gray-600 mt-2">Connect with industry professionals.</p>
-      </div>
-    </section>
+        <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
+          <h3 className="text-lg font-semibold text-blue-600">Networking</h3>
+          <p className="text-gray-600 mt-2">Connect with industry professionals.</p>
+        </div>
+      </section>
 
-    {/* Testimonials */}
-    <section className="p-10 bg-gray-50 w-screen">
-      <h2 className="text-3xl font-bold text-center text-blue-600">What Our Users Say</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 px-6">
-        {[
-          { name: "John Doe", feedback: "This platform helped me land my first job!" },
-          { name: "Jane Smith", feedback: "Amazing mentorship opportunities from alumni." },
-        ].map((review, index) => (
-          <div key={index} className="p-6 bg-white rounded-xl shadow-md">
-            <p className="text-gray-700">"{review.feedback}"</p>
-            <h4 className="mt-2 font-semibold text-blue-600">{review.name}</h4>
-          </div>
-        ))}
-      </div>
-    </section>
+      {/* Alumni Portal Banner - Only shown to alumni users */}
+      {user?.role === 'alumni' && (
+        <section className="w-screen bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8 text-center">
+          <h2 className="text-2xl font-bold mb-3">Alumni Portal Access</h2>
+          <p className="mb-4">As an alumni, you have access to special features to help students and share opportunities.</p>
+          <Link to="/alumni" className="bg-white text-blue-600 px-6 py-2 rounded-md font-semibold hover:bg-gray-200 inline-flex items-center">
+            <GraduationCap className="mr-2" size={18} />
+            Access Alumni Portal
+          </Link>
+        </section>
+      )}
 
-    {/* Footer */}
-    <footer className="text-center bg-gray-900 text-white py-6 w-screen mb-0">
-      <p>© 2025 AlumniConnect. All rights reserved.</p>
-    </footer>
-  </>
-);
+      {/* Testimonials */}
+      <section className="p-10 bg-gray-50 w-screen">
+        <h2 className="text-3xl font-bold text-center text-blue-600">What Our Users Say</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 px-6">
+          {[
+            { name: "John Doe", feedback: "This platform helped me land my first job!" },
+            { name: "Jane Smith", feedback: "Amazing mentorship opportunities from alumni." },
+          ].map((review, index) => (
+            <div key={index} className="p-6 bg-white rounded-xl shadow-md">
+              <p className="text-gray-700">"{review.feedback}"</p>
+              <h4 className="mt-2 font-semibold text-blue-600">{review.name}</h4>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="text-center bg-gray-900 text-white py-6 w-screen mb-0">
+        <p>© 2025 AlumniConnect. All rights reserved.</p>
+      </footer>
+    </>
+  );
+};
 
 // Settings Component
 const Settings = () => (

@@ -5,13 +5,36 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AlumniDashboard from "./pages/alumni/AlumniDashboard";
 
 // Protected Route Component for Admin
 const AdminRoute = ({ children }) => {
   const { user } = useUser();
   
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
+// Protected Route Component for Alumni
+const AlumniRoute = ({ children }) => {
+  const { user } = useUser();
+  
+  if (!user || user.role !== 'alumni') {
+    return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
+// Protected Route Component for Students
+const StudentRoute = ({ children }) => {
+  const { user } = useUser();
+  
+  if (!user) {
+    return <Navigate to="/login" />;
   }
   
   return children;
@@ -25,6 +48,8 @@ function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setToken(null);
+    // Redirect to login page
+    window.location.href = "/login";
   };
 
   return (
@@ -42,18 +67,26 @@ function App() {
           />
           <Route 
             path="/dashboard/*" 
-            element={token ? <Dashboard handleLogout={handleLogout} /> : <Navigate to="/login" />} 
+            element={
+              <StudentRoute>
+                <Dashboard handleLogout={handleLogout} />
+              </StudentRoute>
+            } 
           />
           <Route 
             path="/admin/*" 
             element={
-              token ? (
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              ) : (
-                <Navigate to="/login" />
-              )
+              <AdminRoute>
+                <AdminDashboard handleLogout={handleLogout} />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/alumni/*" 
+            element={
+              <AlumniRoute>
+                <AlumniDashboard handleLogout={handleLogout} />
+              </AlumniRoute>
             } 
           />
         </Routes>

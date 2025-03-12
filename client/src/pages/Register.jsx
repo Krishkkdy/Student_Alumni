@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { User, Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Shield } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Shield, GraduationCap, UserPlus } from "lucide-react";
 
 function Register() {
   const [userData, setUserData] = useState({ 
     username: "", 
     email: "", 
-    password: "" 
+    password: "",
+    role: "student" // Default role is student
   });
 
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -139,6 +140,39 @@ function Register() {
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
+              </div>
+
+              {/* Role Selection */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  I am a:
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setUserData({ ...userData, role: 'student' })}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 ${
+                      userData.role === 'student'
+                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        : 'border-gray-200 hover:border-purple-300 text-gray-700'
+                    }`}
+                  >
+                    <UserPlus className="h-5 w-5" />
+                    <span>Student</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserData({ ...userData, role: 'alumni' })}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 ${
+                      userData.role === 'alumni'
+                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        : 'border-gray-200 hover:border-purple-300 text-gray-700'
+                    }`}
+                  >
+                    <GraduationCap className="h-5 w-5" />
+                    <span>Alumni</span>
+                  </button>
+                </div>
               </div>
 
               {/* Error Message */}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Settings, Bell, LogOut, User, ChevronDown, Shield } from 'lucide-react';
+import { Home, Settings, Bell, LogOut, User, ChevronDown, Shield, GraduationCap } from 'lucide-react';
 
 const Navbar = ({ handleLogout }) => {
   const location = useLocation();
@@ -80,6 +80,21 @@ const Navbar = ({ handleLogout }) => {
                 </Link>
               </motion.div>
             )}
+            {user?.role === 'alumni' && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link 
+                  to="/alumni"
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
+                    location.pathname.startsWith('/alumni') ? 
+                    'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 border-b-2 border-blue-600' : 
+                    'text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-purple-500/5'
+                  }`}
+                >
+                  <GraduationCap size={18} />
+                  <span>Alumni Portal</span>
+                </Link>
+              </motion.div>
+            )}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link 
                 to="/dashboard/settings"
@@ -141,6 +156,11 @@ const Navbar = ({ handleLogout }) => {
                     <div className="px-4 py-3 border-b border-gray-200/50">
                       <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                      {user?.role && (
+                        <p className="text-xs font-medium text-blue-600 mt-1">
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        </p>
+                      )}
                     </div>
                     <div className="py-1">
                       <Link 
@@ -151,6 +171,16 @@ const Navbar = ({ handleLogout }) => {
                         <User size={16} />
                         <span>View Profile</span>
                       </Link>
+                      {user?.role === 'alumni' && (
+                        <Link 
+                          to="/alumni" 
+                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                          onClick={() => setIsProfileDropdown(false)}
+                        >
+                          <GraduationCap size={16} />
+                          <span>Alumni Portal</span>
+                        </Link>
+                      )}
                       <Link 
                         to="/dashboard/settings" 
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"

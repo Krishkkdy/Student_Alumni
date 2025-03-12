@@ -5,7 +5,8 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
-        password: ''
+        password: '',
+        role: 'student'
     });
     const [error, setError] = useState('');
 
@@ -24,7 +25,8 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
             setFormData({
                 username: '',
                 email: '',
-                password: ''
+                password: '',
+                role: 'student'
             });
             onClose();
         } catch (err) {
@@ -115,6 +117,19 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
                                     minLength={8}
                                     className="pl-12 pr-4 py-3.5 w-full bg-gray-50/50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-300 outline-none placeholder:text-gray-400 hover:bg-white"
                                 />
+                            </div>
+
+                            {/* Role */}
+                            <div className="relative group">
+                                <select
+                                    name="role"
+                                    value={formData.role}
+                                    onChange={handleChange}
+                                    className="w-full bg-gray-50/50 border-2 border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-300 outline-none text-gray-700"
+                                >
+                                    <option value="student">Student</option>
+                                    <option value="alumni">Alumni</option>
+                                </select>
                             </div>
 
                             {/* Error Message */}

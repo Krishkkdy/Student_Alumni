@@ -23,6 +23,11 @@ const profileSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  role: {
+    type: String,
+    enum: ['student', 'alumni', 'admin'],
+    default: 'student'
+  },
   graduationYear: {
     type: String,
     default: ''

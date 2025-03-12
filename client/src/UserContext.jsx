@@ -10,7 +10,9 @@ export const UserProvider = ({ children }) => {
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        console.log('Loaded user from localStorage:', parsedUser);
+        setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing user data:', error);
       }
@@ -18,7 +20,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const updateUser = (userData) => {
-    console.log(userData);
+    console.log('Updating user data:', userData);
     if (userData) {
       localStorage.setItem('user', JSON.stringify(userData));
     } else {
