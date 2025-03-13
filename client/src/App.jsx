@@ -5,7 +5,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AlumniDashboard from "./pages/alumni/AlumniDashboard";
+import MentorshipRequests from "./pages/alumni/MentorshipRequests";
+import JobPostings from "./pages/alumni/JobPostings";
 
 // Protected Route Component for Admin
 const AdminRoute = ({ children }) => {
@@ -85,7 +86,7 @@ function App() {
             path="/alumni/*" 
             element={
               <AlumniRoute>
-                <AlumniDashboard handleLogout={handleLogout} />
+                <Dashboard handleLogout={handleLogout} />
               </AlumniRoute>
             } 
           />
