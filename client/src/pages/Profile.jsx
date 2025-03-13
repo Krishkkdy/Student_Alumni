@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../UserContext';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Camera, Briefcase, Calendar, Mail, Linkedin, MapPin, Edit2, X } from 'lucide-react';
+import { Camera, Briefcase, Calendar, Mail, Linkedin, MapPin, Edit2, X, FileText, Download, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SKILLS_LIST, INTERESTS_LIST } from '../constants/profileConstants';
 
@@ -22,7 +22,8 @@ const Profile = () => {
     skills: [],
     interests: [],
     profileImage: '',
-    coverImage: ''
+    coverImage: '',
+    resume: '' // Resume file URL or path
   });
 
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ const Profile = () => {
         }
       });
       setProfileData(prev => ({ ...prev, ...response.data }));
+      console.log('Resume URL:', response.data.resume); // Debugging: Log the resume URL
     } catch (error) {
       console.error('Error fetching profile:', error);
       if (error.response?.status === 404) {
@@ -59,6 +61,17 @@ const Profile = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+
+  // Function to handle viewing resume on the web
+  const handleViewResume = () => {
+    if (profileData.resume) {
+      const resumeUrl = `http://localhost:3000${profileData.resume}`; // Ensure full URL
+      window.open(resumeUrl, '_blank'); // Open resume in a new tab
+    } else {
+      setMessage({ text: 'Resume file not found', type: 'error' });
     }
   };
 
@@ -173,6 +186,27 @@ const Profile = () => {
                 </div>
               </div>
               
+              {/* Resume Section */}
+              {profileData.resume && (
+                <div className="mt-6">
+                  <h3 className="font-semibold text-gray-700 mb-3">Resume</h3>
+                  <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                    <FileText size={24} className="text-blue-600" />
+                    <span className="text-gray-700">{profileData.resume.split('/').pop()}</span>
+                    <div className="ml-auto flex gap-2">
+                      <button
+                        onClick={handleViewResume}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      >
+                        <Eye size={18} />
+                        View on Web
+                      </button>
+                      
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-8">
                 <h3 className="font-semibold text-gray-700 mb-3">Skills</h3>
                 <div className="flex flex-wrap gap-2">
