@@ -2,12 +2,26 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Settings, Bell, LogOut, User, ChevronDown, Shield } from 'lucide-react';
+import { 
+  Home, 
+  Settings, 
+  Bell, 
+  LogOut, 
+  User, 
+  ChevronDown, 
+  Shield, 
+  GraduationCap,
+  MessageSquare,
+  Briefcase,
+  Calendar,
+  Users
+} from 'lucide-react';
 
 const Navbar = ({ handleLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isProfileDropdown, setIsProfileDropdown] = useState(false);
+  const [isAlumniMenuOpen, setIsAlumniMenuOpen] = useState(false);
   const [hasNewNotifications] = useState(true);
   const { user } = useUser();
 
@@ -24,6 +38,12 @@ const Navbar = ({ handleLogout }) => {
 
   const isActive = (path) => {
     return location.pathname === `/dashboard${path}` ? 
+      'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 border-b-2 border-blue-600' : 
+      'text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-purple-500/5';
+  };
+
+  const isAlumniActive = (path) => {
+    return location.pathname === `/alumni${path}` ? 
       'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 border-b-2 border-blue-600' : 
       'text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-purple-500/5';
   };
@@ -79,6 +99,78 @@ const Navbar = ({ handleLogout }) => {
                   <span>Admin</span>
                 </Link>
               </motion.div>
+            )}
+            {user?.role === 'alumni' && (
+              <div className="relative">
+                <motion.button
+                  onClick={() => setIsAlumniMenuOpen(!isAlumniMenuOpen)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
+                    location.pathname.startsWith('/alumni') ? 
+                    'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-600 border-b-2 border-blue-600' : 
+                    'text-gray-600 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-purple-500/5'
+                  }`}
+                >
+                  <GraduationCap size={18} />
+                  <span>Alumni Portal</span>
+                  <ChevronDown size={16} className={`ml-1 transition-transform duration-200 ${isAlumniMenuOpen ? 'rotate-180' : ''}`} />
+                </motion.button>
+                
+                {/* Alumni Dropdown Menu */}
+                <AnimatePresence>
+                  {isAlumniMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 mt-2 w-56 bg-white backdrop-blur-lg rounded-xl shadow-xl py-1 z-50 border border-gray-200/50"
+                    >
+                      <Link 
+                        to="/alumni"
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm ${isAlumniActive('') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'} transition-all duration-200`}
+                        onClick={() => setIsAlumniMenuOpen(false)}
+                      >
+                        <Home size={16} />
+                        <span>Alumni Dashboard</span>
+                      </Link>
+                      <Link 
+                        to="/alumni/mentorship"
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm ${isAlumniActive('/mentorship') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'} transition-all duration-200`}
+                        onClick={() => setIsAlumniMenuOpen(false)}
+                      >
+                        <MessageSquare size={16} />
+                        <span>Mentorship Requests</span>
+                      </Link>
+                      <Link 
+                        to="/alumni/jobs"
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm ${isAlumniActive('/jobs') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'} transition-all duration-200`}
+                        onClick={() => setIsAlumniMenuOpen(false)}
+                      >
+                        <Briefcase size={16} />
+                        <span>Job Postings</span>
+                      </Link>
+                      <Link 
+                        to="/alumni/events"
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm ${isAlumniActive('/events') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'} transition-all duration-200`}
+                        onClick={() => setIsAlumniMenuOpen(false)}
+                      >
+                        <Calendar size={16} />
+                        <span>Events</span>
+                      </Link>
+                      <Link 
+                        to="/alumni/network"
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm ${isAlumniActive('/network') ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'} transition-all duration-200`}
+                        onClick={() => setIsAlumniMenuOpen(false)}
+                      >
+                        <Users size={16} />
+                        <span>Networking</span>
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link 
@@ -141,6 +233,11 @@ const Navbar = ({ handleLogout }) => {
                     <div className="px-4 py-3 border-b border-gray-200/50">
                       <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                      {user?.role && (
+                        <p className="text-xs font-medium text-blue-600 mt-1">
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        </p>
+                      )}
                     </div>
                     <div className="py-1">
                       <Link 
@@ -151,6 +248,16 @@ const Navbar = ({ handleLogout }) => {
                         <User size={16} />
                         <span>View Profile</span>
                       </Link>
+                      {user?.role === 'alumni' && (
+                        <Link 
+                          to="/alumni" 
+                          className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
+                          onClick={() => setIsProfileDropdown(false)}
+                        >
+                          <GraduationCap size={16} />
+                          <span>Alumni Portal</span>
+                        </Link>
+                      )}
                       <Link 
                         to="/dashboard/settings" 
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"

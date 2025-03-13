@@ -3,7 +3,7 @@ import { useUser } from '../UserContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { X, Plus, Save, UserIcon } from 'lucide-react';
+import { X, Plus, Save, UserIcon, FileText, Trash, Upload } from 'lucide-react'; // Updated import
 import { PhotoIcon } from '@heroicons/react/24/outline';
 import { SKILLS_LIST, INTERESTS_LIST } from '../constants/profileConstants';
 
@@ -18,6 +18,7 @@ const EditProfile = () => {
   const interestInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(null);
   const [coverImage, setCoverImage] = useState(null);
+  const [resume, setResume] = useState(null);
 
   const [profileData, setProfileData] = useState({
     fullName: '',
@@ -29,7 +30,8 @@ const EditProfile = () => {
     linkedinProfile: '',
     bio: '',
     skills: [],
-    interests: []
+    interests: [],
+    resume: ''
   });
 
   useEffect(() => {
@@ -119,22 +121,65 @@ const EditProfile = () => {
     }));
   };
 
+  const handleResumeUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setResume(file);
+      setProfileData(prev => ({ ...prev, resume: file.name }));
+    }
+  };
+
+  const removeResume = () => {
+    setResume(null);
+    setProfileData(prev => ({ ...prev, resume: '' }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+  
+    const formData = new FormData();
+  
+    // Append all profile data to FormData
+    Object.keys(profileData).forEach((key) => {
+      if (key === 'skills' || key === 'interests') {
+        // Handle arrays (skills and interests)
+        formData.append(key, JSON.stringify(profileData[key]));
+      } else {
+        formData.append(key, profileData[key]);
+      }
+    });
+  
+    // Append files (resume, profileImage, coverImage)
+    if (resume) {
+      formData.append('resume', resume);
+    }
+    if (profileImage) {
+      formData.append('profileImage', profileImage);
+    }
+    if (coverImage) {
+      formData.append('coverImage', coverImage);
+    }
+  
     try {
-      await axios.put(`http://localhost:3000/api/profile/${user.email}`, profileData, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await axios.put(
+        `http://localhost:3000/api/profile/${user.email}`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data', // Ensure the correct content type
+          },
         }
-      });
+      );
+  
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
       setTimeout(() => navigate('/profile'), 1500);
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ 
-        text: error.response?.data?.message || 'Error updating profile', 
-        type: 'error' 
+      setMessage({
+        text: error.response?.data?.message || 'Error updating profile',
+        type: 'error',
       });
     } finally {
       setLoading(false);
@@ -429,10 +474,31 @@ const EditProfile = () => {
               </button>
             </div>
           </div>
+
+          {/* Resume Upload Section */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Resume</label>
+            <div className="flex items-center space-x-4">
+              {resume ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">{resume.name}</span>
+                  <button type="button" onClick={removeResume} className="text-red-600 hover:text-red-800">
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Upload className="h-6 w-6 text-gray-400" /> {/* Replaced DocumentArrowUpIcon with Upload */}
+                  <span className="text-sm text-gray-500">No file selected</span>
+                </div>
+              )}
+              <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
+            </div>
+          </div>
         </form>
       </div>
     </motion.div>
   );
 };
 
-export default EditProfile; 
+export default EditProfile;

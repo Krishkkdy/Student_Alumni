@@ -23,6 +23,11 @@ const profileSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  role: {
+    type: String,
+    enum: ['student', 'alumni', 'admin'],
+    default: 'student'
+  },
   graduationYear: {
     type: String,
     default: ''
@@ -50,12 +55,15 @@ const profileSchema = new mongoose.Schema({
     type: String
   }],
   profileImage: {
-    type: String,
-    default: null
+    url: { type: String, default: '' },
+    publicId: { type: String, default: '' },
   },
   coverImage: {
-    type: String,
-    default: null
+    url: { type: String, default: '' },
+    publicId: { type: String, default: '' },
+  },
+  resume: {
+    type: String, // Stores the URL of the uploaded PDF file
   }
 }, {
   timestamps: true

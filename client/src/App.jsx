@@ -7,13 +7,37 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import EditProfile from './pages/EditProfile';
 import Profile from './pages/Profile';
+import MentorshipRequests from "./pages/alumni/MentorshipRequests";
+import JobPostings from "./pages/alumni/JobPostings";
 
 // Protected Route Component for Admin
 const AdminRoute = ({ children }) => {
   const { user } = useUser();
   
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
+// Protected Route Component for Alumni
+const AlumniRoute = ({ children }) => {
+  const { user } = useUser();
+  
+  if (!user || user.role !== 'alumni') {
+    return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
+// Protected Route Component for Students
+const StudentRoute = ({ children }) => {
+  const { user } = useUser();
+  
+  if (!user) {
+    return <Navigate to="/login" />;
   }
   
   return children;
@@ -27,6 +51,8 @@ function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setToken(null);
+    // Redirect to login page
+    window.location.href = "/login";
   };
 
   return (
@@ -44,18 +70,26 @@ function App() {
           />
           <Route 
             path="/dashboard/*" 
-            element={token ? <Dashboard handleLogout={handleLogout} /> : <Navigate to="/login" />} 
+            element={
+              <StudentRoute>
+                <Dashboard handleLogout={handleLogout} />
+              </StudentRoute>
+            } 
           />
           <Route 
             path="/admin/*" 
             element={
-              token ? (
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              ) : (
-                <Navigate to="/login" />
-              )
+              <AdminRoute>
+                <AdminDashboard handleLogout={handleLogout} />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/alumni/*" 
+            element={
+              <AlumniRoute>
+                <Dashboard handleLogout={handleLogout} />
+              </AlumniRoute>
             } 
           />
           <Route path="/profile" element={<Profile />} />
