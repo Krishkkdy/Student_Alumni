@@ -15,6 +15,7 @@
     "axios": "^1.8.2",
     "framer-motion": "^12.4.10",
     "lucide-react": "^0.477.0",
+    "multer-gridfs-storage": "^5.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0",

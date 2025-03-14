@@ -192,6 +192,20 @@ const EditProfile = () => {
     setProfileData(prev => ({ ...prev, resume: '' }));
   };
 
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+    }
+  };
+
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverImage(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -201,12 +215,11 @@ const EditProfile = () => {
     // Append all profile data to FormData
     Object.keys(profileData).forEach((key) => {
       if (key === 'skills' || key === 'interests') {
-        // Ensure arrays are properly stringified and each item is separate
         const array = profileData[key];
         if (Array.isArray(array)) {
           formData.append(key, JSON.stringify(array));
         }
-      } else {
+      } else if (key !== 'profileImage' && key !== 'coverImage') { // Skip image fields
         formData.append(key, profileData[key]);
       }
     });
@@ -238,20 +251,7 @@ const EditProfile = () => {
         }
       );
   
-      // Update local state with the response data to ensure consistency
-      if (response.data.skills) {
-        setProfileData(prev => ({
-          ...prev,
-          skills: Array.isArray(response.data.skills) ? response.data.skills : []
-        }));
-      }
-      if (response.data.interests) {
-        setProfileData(prev => ({
-          ...prev,
-          interests: Array.isArray(response.data.interests) ? response.data.interests : []
-        }));
-      }
-  
+      setProfileData(response.data);
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
       setTimeout(() => navigate('/dashboard/profile'), 1500);
     } catch (error) {
@@ -344,59 +344,66 @@ const EditProfile = () => {
                     alt="Cover"
                     className="w-full h-full object-cover"
                   />
-                ) : profileData.coverImage?.url ? (
+                ) : profileData.coverImage ? (
                   <img
-                    src={profileData.coverImage.url}
+                    src={`http://localhost:3000${profileData.coverImage}`}
                     alt="Cover"
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
                     <PhotoIcon className="h-12 w-12 text-gray-400" />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <label className="cursor-pointer px-4 py-2 bg-white rounded-lg shadow-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setCoverImage(e.target.files[0])}
-                      className="hidden"
-                    />
-                    Change Cover Photo
-                  </label>
-                </div>
+                <label className="absolute bottom-4 right-4 cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageChange}
+                    className="hidden"
+                  />
+                  <div className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50">
+                    <Upload size={20} className="text-gray-600" />
+                  </div>
+                </label>
               </div>
-
-              <div className="absolute -bottom-6 left-6">
-                <div className="relative group">
-                  <div className="h-24 w-24 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
+              
+              <div className="absolute -bottom-16 left-8">
+                <div className="relative w-32 h-32">
+                  <div className="w-full h-full rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
                     {profileImage ? (
                       <img
                         src={URL.createObjectURL(profileImage)}
                         alt="Profile"
-                        className="h-full w-full object-cover"
+                        className="w-full h-full object-cover"
                       />
-                    ) : profileData.profileImage?.url ? (
+                    ) : profileData.profileImage ? (
                       <img
-                        src={profileData.profileImage.url}
+                        src={`http://localhost:3000${profileData.profileImage}`}
                         alt="Profile"
-                        className="h-full w-full object-cover"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<span class="text-4xl font-bold text-gray-600 flex items-center justify-center h-full">${profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : '?'}</span>`;
+                        }}
                       />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-gray-100">
-                        <UserIcon className="h-12 w-12 text-gray-400" />
-                      </div>
+                      <span className="text-4xl font-bold text-gray-600 flex items-center justify-center h-full">
+                        {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : '?'}
+                      </span>
                     )}
                   </div>
-                  <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <label className="absolute bottom-0 right-0 cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setProfileImage(e.target.files[0])}
+                      onChange={handleProfileImageChange}
                       className="hidden"
                     />
-                    <Upload className="h-6 w-6 text-white" />
+                    <div className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50">
+                      <Upload size={20} className="text-gray-600" />
+                    </div>
                   </label>
                 </div>
               </div>
