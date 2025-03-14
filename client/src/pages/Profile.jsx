@@ -23,8 +23,10 @@ const Profile = () => {
     interests: [],
     profileImage: '',
     coverImage: '',
-    resume: '' // Resume file URL or path
+    resume: ''
   });
+
+  const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false); // State for modal
 
   const navigate = useNavigate();
 
@@ -49,7 +51,6 @@ const Profile = () => {
         }
       });
       setProfileData(prev => ({ ...prev, ...response.data }));
-      console.log('Resume URL:', response.data.resume); // Debugging: Log the resume URL
     } catch (error) {
       console.error('Error fetching profile:', error);
       if (error.response?.status === 404) {
@@ -64,12 +65,26 @@ const Profile = () => {
     }
   };
 
+  // Function to handle resume download
+  const handleDownloadResume = () => {
+    if (profileData.resume) {
+      const resumeUrl = `http://localhost:3000${profileData.resume}`;
+      const link = document.createElement('a');
+      link.href = resumeUrl;
+      link.download = `Resume_${profileData.fullName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      setMessage({ text: 'Resume file not found', type: 'error' });
+    }
+  };
 
   // Function to handle viewing resume on the web
   const handleViewResume = () => {
     if (profileData.resume) {
-      const resumeUrl = `http://localhost:3000${profileData.resume}`; // Ensure full URL
-      window.open(resumeUrl, '_blank'); // Open resume in a new tab
+      const resumeUrl = `http://localhost:3000${profileData.resume}`;
+      window.open(resumeUrl, '_blank');
     } else {
       setMessage({ text: 'Resume file not found', type: 'error' });
     }
@@ -122,14 +137,40 @@ const Profile = () => {
             animate={{ opacity: 1 }}
             className="bg-white rounded-2xl shadow-xl overflow-hidden"
           >
+            {/* Cover Image and Profile Image Section */}
             <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
+              {/* Cover Image */}
+              {profileData.coverImage ? (
+                <img
+                  src={`http://localhost:3000${profileData.coverImage}`}
+                  alt="Cover"
+                  className="h-48 w-full object-cover"
+                />
+              ) : (
+                <div className="h-48 w-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
+              )}
+
+              {/* Profile Image */}
               <div className="absolute -bottom-16 left-8">
-                <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center">
-                  <span className="text-4xl font-bold text-gray-600">
-                    {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : '?'}
-                  </span>
+                <div 
+                  className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center overflow-hidden cursor-pointer"
+                  onClick={() => setIsProfileImageModalOpen(true)} // Open modal on click
+                >
+                  {profileData.profileImage ? (
+                    <img
+                      src={`http://localhost:3000${profileData.profileImage}`}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl font-bold text-gray-600">
+                      {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : '?'}
+                    </span>
+                  )}
                 </div>
               </div>
+
+              {/* Edit Profile Button */}
               <button
                 onClick={() => navigate('/edit-profile')}
                 className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-all flex items-center gap-2"
@@ -138,7 +179,24 @@ const Profile = () => {
                 Edit Profile
               </button>
             </div>
-            
+
+            {/* Profile Image Modal */}
+            {isProfileImageModalOpen && profileData.profileImage && (
+              <div 
+                className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                onClick={() => setIsProfileImageModalOpen(false)} // Close modal on click outside
+              >
+                <div className="bg-white p-4 rounded-lg max-w-lg">
+                  <img
+                    src={`http://localhost:3000${profileData.profileImage}`}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Profile Details Section */}
             <div className="pt-20 px-8 pb-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
@@ -199,14 +257,14 @@ const Profile = () => {
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                       >
                         <Eye size={18} />
-                        View on Web
+                        View
                       </button>
-                      
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Skills Section */}
               <div className="mt-8">
                 <h3 className="font-semibold text-gray-700 mb-3">Skills</h3>
                 <div className="flex flex-wrap gap-2">
@@ -226,6 +284,7 @@ const Profile = () => {
                 </div>
               </div>
               
+              {/* Interests Section */}
               <div className="mt-6">
                 <h3 className="font-semibold text-gray-700 mb-3">Interests</h3>
                 <div className="flex flex-wrap gap-2">
