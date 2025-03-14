@@ -14,11 +14,16 @@ const EditProfile = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [newSkill, setNewSkill] = useState('');
   const [newInterest, setNewInterest] = useState('');
+  const [skillSuggestions, setSkillSuggestions] = useState([]);
+  const [interestSuggestions, setInterestSuggestions] = useState([]);
+  const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+  const [showInterestSuggestions, setShowInterestSuggestions] = useState(false);
   const skillInputRef = useRef(null);
   const interestInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(null);
   const [coverImage, setCoverImage] = useState(null);
   const [resume, setResume] = useState(null);
+  const [resumeFileName, setResumeFileName] = useState('');
 
   const [profileData, setProfileData] = useState({
     fullName: '',
@@ -54,7 +59,14 @@ const EditProfile = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
+      
       setProfileData(prev => ({ ...prev, ...response.data }));
+      
+      // Set resume filename if it exists
+      if (response.data.resume) {
+        const fileName = response.data.resume.split('/').pop(); // Get filename from path
+        setResumeFileName(fileName);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       if (error.response?.status === 404) {
@@ -78,22 +90,47 @@ const EditProfile = () => {
   };
 
   const handleSkillInputChange = (e) => {
-    setNewSkill(e.target.value);
+    const value = e.target.value;
+    setNewSkill(value);
+    
+    if (value.trim()) {
+      const filteredSuggestions = SKILLS_LIST.filter(skill =>
+        skill.toLowerCase().startsWith(value.toLowerCase())
+      );
+      setSkillSuggestions(filteredSuggestions);
+      setShowSkillSuggestions(true);
+    } else {
+      setSkillSuggestions([]);
+      setShowSkillSuggestions(false);
+    }
   };
 
   const handleInterestInputChange = (e) => {
-    setNewInterest(e.target.value);
+    const value = e.target.value;
+    setNewInterest(value);
+    
+    if (value.trim()) {
+      const filteredSuggestions = INTERESTS_LIST.filter(interest =>
+        interest.toLowerCase().startsWith(value.toLowerCase())
+      );
+      setInterestSuggestions(filteredSuggestions);
+      setShowInterestSuggestions(true);
+    } else {
+      setInterestSuggestions([]);
+      setShowInterestSuggestions(false);
+    }
   };
 
-  const addSkill = () => {
-    if (newSkill && !profileData.skills.includes(newSkill)) {
+  const selectSkill = (skill) => {
+    if (!profileData.skills.includes(skill)) {
       setProfileData(prev => ({
         ...prev,
-        skills: [...prev.skills, newSkill]
+        skills: [...prev.skills, skill]
       }));
-      setNewSkill('');
-      skillInputRef.current?.focus();
     }
+    setNewSkill('');
+    setShowSkillSuggestions(false);
+    skillInputRef.current?.focus();
   };
 
   const removeSkill = (skillToRemove) => {
@@ -103,15 +140,16 @@ const EditProfile = () => {
     }));
   };
 
-  const addInterest = () => {
-    if (newInterest && !profileData.interests.includes(newInterest)) {
+  const selectInterest = (interest) => {
+    if (!profileData.interests.includes(interest)) {
       setProfileData(prev => ({
         ...prev,
-        interests: [...prev.interests, newInterest]
+        interests: [...prev.interests, interest]
       }));
-      setNewInterest('');
-      interestInputRef.current?.focus();
     }
+    setNewInterest('');
+    setShowInterestSuggestions(false);
+    interestInputRef.current?.focus();
   };
 
   const removeInterest = (interestToRemove) => {
@@ -121,16 +159,36 @@ const EditProfile = () => {
     }));
   };
 
+  const handleSkillKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (newSkill.trim() && !profileData.skills.includes(newSkill.trim())) {
+        selectSkill(newSkill.trim());
+      }
+    }
+  };
+
+  const handleInterestKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (newInterest.trim() && !profileData.interests.includes(newInterest.trim())) {
+        selectInterest(newInterest.trim());
+      }
+    }
+  };
+
   const handleResumeUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setResume(file);
+      setResumeFileName(file.name);
       setProfileData(prev => ({ ...prev, resume: file.name }));
     }
   };
 
   const removeResume = () => {
     setResume(null);
+    setResumeFileName('');
     setProfileData(prev => ({ ...prev, resume: '' }));
   };
 
@@ -143,17 +201,24 @@ const EditProfile = () => {
     // Append all profile data to FormData
     Object.keys(profileData).forEach((key) => {
       if (key === 'skills' || key === 'interests') {
-        // Handle arrays (skills and interests)
-        formData.append(key, JSON.stringify(profileData[key]));
+        // Ensure arrays are properly stringified and each item is separate
+        const array = profileData[key];
+        if (Array.isArray(array)) {
+          formData.append(key, JSON.stringify(array));
+        }
       } else {
         formData.append(key, profileData[key]);
       }
     });
   
-    // Append files (resume, profileImage, coverImage)
+    // Handle resume removal or update
     if (resume) {
       formData.append('resume', resume);
+    } else if (profileData.resume === '') {
+      formData.append('removeResume', 'true');
     }
+  
+    // Append files (profileImage, coverImage)
     if (profileImage) {
       formData.append('profileImage', profileImage);
     }
@@ -168,13 +233,27 @@ const EditProfile = () => {
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data', // Ensure the correct content type
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
   
+      // Update local state with the response data to ensure consistency
+      if (response.data.skills) {
+        setProfileData(prev => ({
+          ...prev,
+          skills: Array.isArray(response.data.skills) ? response.data.skills : []
+        }));
+      }
+      if (response.data.interests) {
+        setProfileData(prev => ({
+          ...prev,
+          interests: Array.isArray(response.data.interests) ? response.data.interests : []
+        }));
+      }
+  
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
-      setTimeout(() => navigate('/profile'), 1500);
+      setTimeout(() => navigate('/dashboard/profile'), 1500);
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({
@@ -190,312 +269,436 @@ const EditProfile = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8"
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-4xl mx-auto">
         {message.text && (
-          <div className={`mb-4 p-4 rounded-lg ${
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {message.text}
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-6 p-4 rounded-lg shadow-lg flex items-center justify-between ${
+              message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'
+            }`}
+          >
+            <span className="flex items-center">
+              {message.type === 'success' ? (
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              )}
+              {message.text}
+            </span>
+            <button 
+              onClick={() => setMessage({ text: '', type: '' })}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">Edit Profile</h2>
-            <div className="space-x-4">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-2"
-              >
-                <X size={18} />
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Save size={18} />
-                Save Changes
-              </button>
-            </div>
-          </div>
-
-          {/* Profile Image Upload */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Profile Image
-            </label>
-            <div className="flex items-center space-x-4">
-              <div className="relative h-24 w-24">
-                {profileImage ? (
-                  <img
-                    src={URL.createObjectURL(profileImage)}
-                    alt="Profile Preview"
-                    className="h-24 w-24 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
-                    <UserIcon className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
+        <motion.form 
+          onSubmit={handleSubmit} 
+          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+          {/* Header Section */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Edit Profile</h2>
+              <div className="space-x-4">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="px-4 py-2 text-white opacity-90 hover:opacity-100 transition-opacity flex items-center gap-2"
+                >
+                  <X size={18} />
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  ) : (
+                    <Save size={18} />
+                  )}
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setProfileImage(e.target.files[0])}
-                className="block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100"
-              />
             </div>
           </div>
 
-          {/* Cover Image Upload */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Cover Image
-            </label>
-            <div className="space-y-4">
-              <div className="relative h-48 w-full">
+          <div className="p-6 space-y-8">
+            {/* Profile & Cover Image Section */}
+            <div className="relative">
+              <div className="h-48 bg-gray-100 rounded-xl overflow-hidden">
                 {coverImage ? (
                   <img
                     src={URL.createObjectURL(coverImage)}
-                    alt="Cover Preview"
-                    className="h-48 w-full rounded-lg object-cover"
+                    alt="Cover"
+                    className="w-full h-full object-cover"
+                  />
+                ) : profileData.coverImage?.url ? (
+                  <img
+                    src={profileData.coverImage.url}
+                    alt="Cover"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="h-48 w-full rounded-lg bg-gray-200 flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center">
                     <PhotoIcon className="h-12 w-12 text-gray-400" />
                   </div>
                 )}
+                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <label className="cursor-pointer px-4 py-2 bg-white rounded-lg shadow-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setCoverImage(e.target.files[0])}
+                      className="hidden"
+                    />
+                    Change Cover Photo
+                  </label>
+                </div>
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setCoverImage(e.target.files[0])}
-                className="block w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={profileData.fullName}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={profileData.username}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Graduation Year
-              </label>
-              <input
-                type="text"
-                name="graduationYear"
-                value={profileData.graduationYear}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Current Position
-              </label>
-              <input
-                type="text"
-                name="currentPosition"
-                value={profileData.currentPosition}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company
-              </label>
-              <input
-                type="text"
-                name="company"
-                value={profileData.company}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                LinkedIn Profile
-              </label>
-              <input
-                type="url"
-                name="linkedinProfile"
-                value={profileData.linkedinProfile}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bio
-            </label>
-            <textarea
-              name="bio"
-              value={profileData.bio}
-              onChange={handleInputChange}
-              rows="4"
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Skills
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {profileData.skills.map((skill, index) => (
-                <span
-                  key={index}
-                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                >
-                  {skill}
-                  <button
-                    type="button"
-                    onClick={() => removeSkill(skill)}
-                    className="hover:text-blue-600"
-                  >
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={newSkill}
-                onChange={handleSkillInputChange}
-                ref={skillInputRef}
-                className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a skill</option>
-                {SKILLS_LIST.map((skill) => (
-                  <option key={skill} value={skill}>
-                    {skill}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={addSkill}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Plus size={18} />
-                Add
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Interests
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {profileData.interests.map((interest, index) => (
-                <span
-                  key={index}
-                  className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                >
-                  {interest}
-                  <button
-                    type="button"
-                    onClick={() => removeInterest(interest)}
-                    className="hover:text-purple-600"
-                  >
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={newInterest}
-                onChange={handleInterestInputChange}
-                ref={interestInputRef}
-                className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select an interest</option>
-                {INTERESTS_LIST.map((interest) => (
-                  <option key={interest} value={interest}>
-                    {interest}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={addInterest}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-              >
-                <Plus size={18} />
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Resume Upload Section */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Resume</label>
-            <div className="flex items-center space-x-4">
-              {resume ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{resume.name}</span>
-                  <button type="button" onClick={removeResume} className="text-red-600 hover:text-red-800">
-                    <X size={16} />
-                  </button>
+              <div className="absolute -bottom-6 left-6">
+                <div className="relative group">
+                  <div className="h-24 w-24 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
+                    {profileImage ? (
+                      <img
+                        src={URL.createObjectURL(profileImage)}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : profileData.profileImage?.url ? (
+                      <img
+                        src={profileData.profileImage.url}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-gray-100">
+                        <UserIcon className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setProfileImage(e.target.files[0])}
+                      className="hidden"
+                    />
+                    <Upload className="h-6 w-6 text-white" />
+                  </label>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Upload className="h-6 w-6 text-gray-400" /> {/* Replaced DocumentArrowUpIcon with Upload */}
-                  <span className="text-sm text-gray-500">No file selected</span>
+              </div>
+            </div>
+
+            {/* Main Form Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
+              <div className="col-span-2 md:col-span-1 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={profileData.fullName}
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div className="col-span-2 md:col-span-1 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={profileData.username}
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Choose a username"
+                />
+              </div>
+
+              <div className="col-span-2 md:col-span-1 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Graduation Year
+                </label>
+                <input
+                  type="text"
+                  name="graduationYear"
+                  value={profileData.graduationYear}
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter graduation year"
+                />
+              </div>
+
+              <div className="col-span-2 md:col-span-1 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Current Position
+                </label>
+                <input
+                  type="text"
+                  name="currentPosition"
+                  value={profileData.currentPosition}
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your current position"
+                />
+              </div>
+
+              <div className="col-span-2 md:col-span-1 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Company
+                </label>
+                <input
+                  type="text"
+                  name="company"
+                  value={profileData.company}
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your company name"
+                />
+              </div>
+
+              <div className="col-span-2 md:col-span-1 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  LinkedIn Profile
+                </label>
+                <input
+                  type="url"
+                  name="linkedinProfile"
+                  value={profileData.linkedinProfile}
+                  onChange={handleInputChange}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your LinkedIn URL"
+                />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Bio
+                </label>
+                <textarea
+                  name="bio"
+                  value={profileData.bio}
+                  onChange={handleInputChange}
+                  rows="4"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
+
+              {/* Skills Section */}
+              <div className="col-span-2 space-y-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Skills
+                </label>
+                <div className="flex flex-wrap gap-2 min-h-[2.5rem]">
+                  {Array.isArray(profileData.skills) && profileData.skills.map((skill, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2 hover:bg-blue-200 transition-colors"
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => removeSkill(skill)}
+                        className="hover:text-blue-600 focus:outline-none"
+                      >
+                        <X size={14} />
+                      </button>
+                    </motion.span>
+                  ))}
                 </div>
-              )}
-              <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
+                <div className="relative">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newSkill}
+                      onChange={handleSkillInputChange}
+                      onKeyDown={handleSkillKeyDown}
+                      ref={skillInputRef}
+                      placeholder="Type a skill..."
+                      className="flex-1 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => selectSkill(newSkill)}
+                      disabled={!newSkill.trim()}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus size={18} />
+                      Add
+                    </button>
+                  </div>
+                  {showSkillSuggestions && skillSuggestions.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                    >
+                      {skillSuggestions.map((skill, index) => (
+                        <button
+                          key={index}
+                          onClick={() => selectSkill(skill)}
+                          className="w-full text-left px-4 py-2 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors"
+                        >
+                          {skill}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Interests Section */}
+              <div className="col-span-2 space-y-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Interests
+                </label>
+                <div className="flex flex-wrap gap-2 min-h-[2.5rem]">
+                  {Array.isArray(profileData.interests) && profileData.interests.map((interest, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2 hover:bg-purple-200 transition-colors"
+                    >
+                      {interest}
+                      <button
+                        type="button"
+                        onClick={() => removeInterest(interest)}
+                        className="hover:text-purple-600 focus:outline-none"
+                      >
+                        <X size={14} />
+                      </button>
+                    </motion.span>
+                  ))}
+                </div>
+                <div className="relative">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newInterest}
+                      onChange={handleInterestInputChange}
+                      onKeyDown={handleInterestKeyDown}
+                      ref={interestInputRef}
+                      placeholder="Type an interest..."
+                      className="flex-1 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => selectInterest(newInterest)}
+                      disabled={!newInterest.trim()}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus size={18} />
+                      Add
+                    </button>
+                  </div>
+                  {showInterestSuggestions && interestSuggestions.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                    >
+                      {interestSuggestions.map((interest, index) => (
+                        <button
+                          key={index}
+                          onClick={() => selectInterest(interest)}
+                          className="w-full text-left px-4 py-2 hover:bg-purple-50 focus:bg-purple-50 focus:outline-none transition-colors"
+                        >
+                          {interest}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Resume Section */}
+              <div className="col-span-2 space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Resume</label>
+                <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-gray-400" />
+                      {(resume || resumeFileName) ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">
+                            {resume ? resume.name : resumeFileName}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            PDF, DOC, or DOCX
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">
+                            No file selected
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Upload your resume
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {(resume || resumeFileName) && (
+                        <>
+                          {!resume && resumeFileName && (
+                            <a
+                              href={`http://localhost:3000${profileData.resume}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                            >
+                              View
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={removeResume}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
+                      <label className="cursor-pointer bg-white text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleResumeUpload}
+                          className="hidden"
+                        />
+                        Upload New
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </form>
+        </motion.form>
       </div>
     </motion.div>
   );

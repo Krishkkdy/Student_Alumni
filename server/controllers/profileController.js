@@ -54,6 +54,27 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
+    // Parse skills and interests from form data
+    let skills = [];
+    let interests = [];
+    
+    try {
+      if (req.body.skills) {
+        skills = JSON.parse(req.body.skills);
+        if (!Array.isArray(skills)) {
+          skills = [];
+        }
+      }
+      if (req.body.interests) {
+        interests = JSON.parse(req.body.interests);
+        if (!Array.isArray(interests)) {
+          interests = [];
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing skills/interests:', e);
+    }
+
     // Update profile fields
     profile.username = req.body.username || profile.username;
     profile.fullName = req.body.fullName || profile.fullName;
@@ -63,11 +84,42 @@ const updateProfile = async (req, res) => {
     profile.company = req.body.company || profile.company;
     profile.linkedinProfile = req.body.linkedinProfile || profile.linkedinProfile;
     profile.bio = req.body.bio || profile.bio;
-    profile.skills = req.body.skills || profile.skills;
-    profile.interests = req.body.interests || profile.interests;
+    profile.skills = skills;
+    profile.interests = interests;
 
-    // Handle resume upload
-    if (req.file) {
+    // Handle resume
+    if (req.body.removeResume === 'true') {
+      // If resume removal is requested
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Delete the file if it exists
+      if (profile.resume) {
+        const resumePath = path.join(__dirname, '..', profile.resume);
+        try {
+          if (fs.existsSync(resumePath)) {
+            fs.unlinkSync(resumePath);
+          }
+        } catch (err) {
+          console.error('Error deleting resume file:', err);
+        }
+      }
+      profile.resume = '';
+    } else if (req.file) {
+      // If a new resume is uploaded
+      // Delete old resume file if it exists
+      if (profile.resume) {
+        const fs = require('fs');
+        const path = require('path');
+        const oldResumePath = path.join(__dirname, '..', profile.resume);
+        try {
+          if (fs.existsSync(oldResumePath)) {
+            fs.unlinkSync(oldResumePath);
+          }
+        } catch (err) {
+          console.error('Error deleting old resume file:', err);
+        }
+      }
       profile.resume = `/uploads/resumes/${req.file.filename}`;
     }
 
