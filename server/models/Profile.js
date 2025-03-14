@@ -55,12 +55,10 @@ const profileSchema = new mongoose.Schema({
     type: String
   }],
   profileImage: {
-    url: { type: String, default: '' },
-    publicId: { type: String, default: '' },
+    type: String
   },
   coverImage: {
-    url: { type: String, default: '' },
-    publicId: { type: String, default: '' },
+    type: String
   },
   resume: {
     type: String, // Stores the URL of the uploaded PDF file

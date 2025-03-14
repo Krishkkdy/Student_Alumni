@@ -66,24 +66,17 @@ const updateProfile = async (req, res) => {
     profile.skills = req.body.skills || profile.skills;
     profile.interests = req.body.interests || profile.interests;
 
-    // Handle resume upload
-    if (req.file) {
-      profile.resume = `/uploads/resumes/${req.file.filename}`;
-    }
-
-    // Handle profile and cover images
-    if (req.body.profileImage && typeof req.body.profileImage === 'object') {
-      profile.profileImage = {
-        url: req.body.profileImage.url || profile.profileImage.url,
-        publicId: req.body.profileImage.publicId || profile.profileImage.publicId,
-      };
-    }
-
-    if (req.body.coverImage && typeof req.body.coverImage === 'object') {
-      profile.coverImage = {
-        url: req.body.coverImage.url || profile.coverImage.url,
-        publicId: req.body.coverImage.publicId || profile.coverImage.publicId,
-      };
+    // Handle file uploads
+    if (req.files) {
+      if (req.files.resume) {
+        profile.resume = `/uploads/resumes/${req.files.resume[0].filename}`;
+      }
+      if (req.files.profileImage) {
+        profile.profileImage = `/uploads/profileImages/${req.files.profileImage[0].filename}`;
+      }
+      if (req.files.coverImage) {
+        profile.coverImage = `/uploads/coverImages/${req.files.coverImage[0].filename}`;
+      }
     }
 
     // Save the updated profile

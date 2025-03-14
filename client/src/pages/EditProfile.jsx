@@ -3,7 +3,7 @@ import { useUser } from '../UserContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { X, Plus, Save, UserIcon, FileText, Trash, Upload } from 'lucide-react'; // Updated import
+import { X, Plus, Save, UserIcon, FileText, Trash, Upload } from 'lucide-react';
 import { PhotoIcon } from '@heroicons/react/24/outline';
 import { SKILLS_LIST, INTERESTS_LIST } from '../constants/profileConstants';
 
@@ -31,7 +31,9 @@ const EditProfile = () => {
     bio: '',
     skills: [],
     interests: [],
-    resume: ''
+    resume: '',
+    profileImage: '',
+    coverImage: ''
   });
 
   useEffect(() => {
@@ -129,17 +131,43 @@ const EditProfile = () => {
     }
   };
 
+  const handleProfileImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileData(prev => ({ ...prev, profileImage: file.name }));
+    }
+  };
+
+  const handleCoverImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverImage(file);
+      setProfileData(prev => ({ ...prev, coverImage: file.name }));
+    }
+  };
+
   const removeResume = () => {
     setResume(null);
     setProfileData(prev => ({ ...prev, resume: '' }));
   };
 
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    setProfileData(prev => ({ ...prev, profileImage: '' }));
+  };
+
+  const removeCoverImage = () => {
+    setCoverImage(null);
+    setProfileData(prev => ({ ...prev, coverImage: '' }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     const formData = new FormData();
-  
+
     // Append all profile data to FormData
     Object.keys(profileData).forEach((key) => {
       if (key === 'skills' || key === 'interests') {
@@ -149,7 +177,7 @@ const EditProfile = () => {
         formData.append(key, profileData[key]);
       }
     });
-  
+
     // Append files (resume, profileImage, coverImage)
     if (resume) {
       formData.append('resume', resume);
@@ -160,7 +188,7 @@ const EditProfile = () => {
     if (coverImage) {
       formData.append('coverImage', coverImage);
     }
-  
+
     try {
       const response = await axios.put(
         `http://localhost:3000/api/profile/${user.email}`,
@@ -172,7 +200,7 @@ const EditProfile = () => {
           },
         }
       );
-  
+
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
       setTimeout(() => navigate('/profile'), 1500);
     } catch (error) {
@@ -232,11 +260,20 @@ const EditProfile = () => {
             <div className="flex items-center space-x-4">
               <div className="relative h-24 w-24">
                 {profileImage ? (
-                  <img
-                    src={URL.createObjectURL(profileImage)}
-                    alt="Profile Preview"
-                    className="h-24 w-24 rounded-full object-cover"
-                  />
+                  <>
+                    <img
+                      src={URL.createObjectURL(profileImage)}
+                      alt="Profile Preview"
+                      className="h-24 w-24 rounded-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeProfileImage}
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
                 ) : (
                   <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
                     <UserIcon className="h-12 w-12 text-gray-400" />
@@ -246,7 +283,7 @@ const EditProfile = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setProfileImage(e.target.files[0])}
+                onChange={handleProfileImageUpload}
                 className="block w-full text-sm text-gray-500
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-full file:border-0
@@ -265,11 +302,20 @@ const EditProfile = () => {
             <div className="space-y-4">
               <div className="relative h-48 w-full">
                 {coverImage ? (
-                  <img
-                    src={URL.createObjectURL(coverImage)}
-                    alt="Cover Preview"
-                    className="h-48 w-full rounded-lg object-cover"
-                  />
+                  <>
+                    <img
+                      src={URL.createObjectURL(coverImage)}
+                      alt="Cover Preview"
+                      className="h-48 w-full rounded-lg object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeCoverImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
                 ) : (
                   <div className="h-48 w-full rounded-lg bg-gray-200 flex items-center justify-center">
                     <PhotoIcon className="h-12 w-12 text-gray-400" />
@@ -279,7 +325,7 @@ const EditProfile = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setCoverImage(e.target.files[0])}
+                onChange={handleCoverImageUpload}
                 className="block w-full text-sm text-gray-500
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-full file:border-0
@@ -488,7 +534,7 @@ const EditProfile = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Upload className="h-6 w-6 text-gray-400" /> {/* Replaced DocumentArrowUpIcon with Upload */}
+                  <Upload className="h-6 w-6 text-gray-400" />
                   <span className="text-sm text-gray-500">No file selected</span>
                 </div>
               )}
