@@ -1,4 +1,5 @@
 const User = require('../models/userSchema');
+const AlumniProfile = require('../models/AlumniProfile');
 const mongoose = require('mongoose');
 
 // Create models for the alumni functionality
@@ -50,6 +51,17 @@ const Job = mongoose.models.Job || mongoose.model('Job', JobSchema);
 const Event = mongoose.models.Event || mongoose.model('Event', EventSchema);
 const MentorshipRequest = mongoose.models.MentorshipRequest || mongoose.model('MentorshipRequest', MentorshipRequestSchema);
 const Connection = mongoose.models.Connection || mongoose.model('Connection', ConnectionSchema);
+
+// Helper function to get alumni profile
+const getAlumniProfile = async (userId) => {
+    try {
+        const alumniProfile = await AlumniProfile.findOne({ user: userId });
+        return alumniProfile;
+    } catch (error) {
+        console.error('Error fetching alumni profile:', error);
+        return null;
+    }
+};
 
 // Profile controllers
 exports.getProfile = async (req, res) => {

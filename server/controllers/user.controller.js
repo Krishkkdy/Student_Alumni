@@ -1,4 +1,7 @@
 const User = require('../models/userSchema');
+const Profile = require('../models/Profile'); // Keep for backward compatibility
+const StudentProfile = require('../models/StudentProfile');
+const AlumniProfile = require('../models/AlumniProfile');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -11,7 +14,25 @@ exports.getProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        res.status(200).json({ user });
+        
+        // Get the appropriate profile based on user role
+        let profile = null;
+        
+        if (user.role === 'alumni') {
+            profile = await AlumniProfile.findOne({ user: user._id });
+        } else if (user.role === 'student') {
+            profile = await StudentProfile.findOne({ user: user._id });
+        }
+        
+        // Fallback to general profile if specific profile not found
+        if (!profile) {
+            profile = await Profile.findOne({ user: user._id });
+        }
+        
+        res.status(200).json({ 
+            user,
+            profile
+        });
     } catch (error) {
         console.error("Error fetching profile:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -28,15 +49,67 @@ exports.updateProfile = async (req, res) => {
         delete updates.role;
         delete updates.isEmailVerified;
 
+        // Update user data
         const user = await User.findByIdAndUpdate(
             req.user.userId,
             { $set: updates },
             { new: true, runValidators: true }
         ).select('-password_hash');
+        
+        // Update profile data based on role
+        let profile = null;
+        
+        if (user.role === 'alumni') {
+            profile = await AlumniProfile.findOneAndUpdate(
+                { user: user._id },
+                { $set: updates.profile || {} },
+                { new: true, runValidators: true }
+            );
+            
+            // If alumni profile doesn't exist, create it
+            if (!profile && updates.profile) {
+                profile = new AlumniProfile({
+                    user: user._id,
+                    username: user.username,
+                    email: user.email,
+                    fullName: updates.profile.fullName || user.username,
+                    ...updates.profile
+                });
+                await profile.save();
+            }
+        } else {
+            profile = await StudentProfile.findOneAndUpdate(
+                { user: user._id },
+                { $set: updates.profile || {} },
+                { new: true, runValidators: true }
+            );
+            
+            // If student profile doesn't exist, create it
+            if (!profile && updates.profile) {
+                profile = new StudentProfile({
+                    user: user._id,
+                    username: user.username,
+                    email: user.email,
+                    fullName: updates.profile.fullName || user.username,
+                    ...updates.profile
+                });
+                await profile.save();
+            }
+        }
+        
+        // Also update general profile for backward compatibility
+        if (updates.profile) {
+            await Profile.findOneAndUpdate(
+                { user: user._id },
+                { $set: updates.profile },
+                { new: true, upsert: true }
+            );
+        }
 
         res.status(200).json({
             message: "Profile updated successfully",
-            user
+            user,
+            profile
         });
     } catch (error) {
         console.error("Error updating profile:", error);

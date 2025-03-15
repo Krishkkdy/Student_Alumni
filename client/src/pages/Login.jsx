@@ -59,9 +59,18 @@ function Login({ setToken }) {
     try {
       // Update the user's role in the profile
       const token = loginResponse.token;
+      const updateData = { 
+        role: selectedRole 
+      };
+      
+      // Add graduationYear for alumni
+      if (selectedRole === 'alumni') {
+        updateData.graduationYear = new Date().getFullYear().toString();
+      }
+      
       await axios.patch(
         `http://localhost:3000/api/admin/users/${loginResponse.user._id}/role`,
-        { role: selectedRole },
+        updateData,
         { headers: { Authorization: `Bearer ${token}` }}
       );
 
@@ -119,24 +128,70 @@ function Login({ setToken }) {
         // If alumni, redirect to alumni dashboard
         localStorage.setItem("token", res.data.token);
         setToken(res.data.token);
+        
+        // Store user data
         updateUser({
           name: res.data.user.name || 'User',
           email: res.data.user.email,
           role: res.data.user.role,
-          id: res.data.user._id
+          id: res.data.user._id,
+          profileId: res.data.user.profileId
         });
+        
+        // Fetch profile data if profileId is available
+        if (res.data.user.profileId) {
+          try {
+            const profileResponse = await axios.get(`http://localhost:3000/api/profile/${res.data.user.email}`, {
+              headers: {
+                'Authorization': `Bearer ${res.data.token}`
+              }
+            });
+            
+            if (profileResponse.data) {
+              // Store profile data in localStorage
+              localStorage.setItem('profile', JSON.stringify(profileResponse.data));
+              localStorage.setItem('profileType', 'alumni');
+            }
+          } catch (profileError) {
+            console.error('Error fetching profile data:', profileError);
+          }
+        }
+        
         console.log("Redirecting to alumni dashboard...");
         navigate("/alumni");
       } else {
         // If student, redirect to student dashboard
         localStorage.setItem("token", res.data.token);
         setToken(res.data.token);
+        
+        // Store user data
         updateUser({
           name: res.data.user.name || 'User',
           email: res.data.user.email,
           role: res.data.user.role,
-          id: res.data.user._id
+          id: res.data.user._id,
+          profileId: res.data.user.profileId
         });
+        
+        // Fetch profile data if profileId is available
+        if (res.data.user.profileId) {
+          try {
+            const profileResponse = await axios.get(`http://localhost:3000/api/profile/${res.data.user.email}`, {
+              headers: {
+                'Authorization': `Bearer ${res.data.token}`
+              }
+            });
+            
+            if (profileResponse.data) {
+              // Store profile data in localStorage
+              localStorage.setItem('profile', JSON.stringify(profileResponse.data));
+              localStorage.setItem('profileType', 'student');
+            }
+          } catch (profileError) {
+            console.error('Error fetching profile data:', profileError);
+          }
+        }
+        
         navigate("/dashboard");
       }
     } catch (error) {

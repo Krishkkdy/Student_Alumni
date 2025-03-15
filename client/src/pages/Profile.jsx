@@ -2,28 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../UserContext';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Camera, Briefcase, Calendar, Mail, Linkedin, MapPin, Edit2, X, FileText, Download, Eye } from 'lucide-react';
+import { Camera, Briefcase, Calendar, Mail, Linkedin, MapPin, Edit2, X, FileText, Download, Eye, GraduationCap, BookOpen, School } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SKILLS_LIST, INTERESTS_LIST } from '../constants/profileConstants';
 
 const Profile = () => {
-  const { user } = useUser();
+  const { user, profile, updateProfile, profileType, isStudent, isAlumni } = useUser();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [profileData, setProfileData] = useState({
+    // Common fields
     fullName: '',
     email: '',
     username: '',
-    graduationYear: '',
-    currentPosition: '',
-    company: '',
-    linkedinProfile: '',
     bio: '',
     skills: [],
     interests: [],
     profileImage: '',
     coverImage: '',
-    resume: ''
+    resume: '',
+    linkedinProfile: '',
+    
+    // Student-specific fields
+    enrollmentYear: '',
+    expectedGraduationYear: '',
+    major: '',
+    minor: '',
+    currentSemester: '',
+    studentId: '',
+    achievements: [],
+    projects: [],
+    
+    // Alumni-specific fields
+    graduationYear: '',
+    degree: '',
+    currentPosition: '',
+    company: '',
+    industry: '',
+    workExperience: [],
+    mentorshipAvailability: false,
+    mentorshipAreas: []
   });
 
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false); // State for modal
@@ -50,112 +68,291 @@ const Profile = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      setProfileData(prev => ({ ...prev, ...response.data }));
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      if (error.response?.status === 404) {
-        return;
+      
+      if (response.data) {
+        updateProfile(response.data);
+        setProfileData(prevData => ({
+          ...prevData,
+          ...response.data
+        }));
       }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
       setMessage({ 
-        text: error.response?.data?.message || 'Error fetching profile data', 
+        text: 'Failed to load profile data. Please try again.',
         type: 'error' 
       });
-    } finally {
       setLoading(false);
     }
   };
 
-  // Function to handle resume download
   const handleDownloadResume = () => {
     if (profileData.resume) {
-      const resumeUrl = `http://localhost:3000${profileData.resume}`;
       const link = document.createElement('a');
-      link.href = resumeUrl;
-      link.download = `Resume_${profileData.fullName}.pdf`;
+      link.href = `http://localhost:3000${profileData.resume}`;
+      link.download = 'resume.pdf';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else {
-      setMessage({ text: 'Resume file not found', type: 'error' });
     }
   };
 
-  // Function to handle viewing resume on the web
   const handleViewResume = () => {
     if (profileData.resume) {
-      const resumeUrl = `http://localhost:3000${profileData.resume}`;
-      window.open(resumeUrl, '_blank');
-    } else {
-      setMessage({ text: 'Resume file not found', type: 'error' });
+      window.open(`http://localhost:3000${profileData.resume}`, '_blank');
     }
+  };
+
+  // Function to render student-specific information
+  const renderStudentInfo = () => {
+  return (
+      <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-4 text-blue-600">Academic Information</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {profileData.enrollmentYear && (
+            <div className="flex items-center">
+              <Calendar className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Enrollment Year</p>
+                <p>{profileData.enrollmentYear}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.expectedGraduationYear && (
+            <div className="flex items-center">
+              <GraduationCap className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Expected Graduation</p>
+                <p>{profileData.expectedGraduationYear}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.major && (
+            <div className="flex items-center">
+              <BookOpen className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Major</p>
+                <p>{profileData.major}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.minor && (
+            <div className="flex items-center">
+              <BookOpen className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Minor</p>
+                <p>{profileData.minor}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.currentSemester && (
+            <div className="flex items-center">
+              <School className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Current Semester</p>
+                <p>{profileData.currentSemester}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Projects Section */}
+        {profileData.projects && profileData.projects.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-lg font-semibold mb-3 text-blue-600">Projects</h4>
+            <div className="space-y-4">
+              {profileData.projects.map((project, index) => (
+                <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+                  <h5 className="font-semibold">{project.title}</h5>
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                  {project.technologies && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {project.technologies.map((tech, techIndex) => (
+                        <span key={techIndex} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {project.link && (
+                    <a 
+                      href={project.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 text-sm mt-1 inline-block hover:underline"
+                    >
+                      View Project
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Achievements Section */}
+        {profileData.achievements && profileData.achievements.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-lg font-semibold mb-3 text-blue-600">Achievements</h4>
+            <div className="space-y-4">
+              {profileData.achievements.map((achievement, index) => (
+                <div key={index} className="border-l-4 border-green-500 pl-4 py-2">
+                  <h5 className="font-semibold">{achievement.title}</h5>
+                  <p className="text-sm text-gray-600">{achievement.description}</p>
+                  {achievement.date && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(achievement.date).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Function to render alumni-specific information
+  const renderAlumniInfo = () => {
+    return (
+      <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-4 text-blue-600">Professional Information</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {profileData.graduationYear && (
+            <div className="flex items-center">
+              <GraduationCap className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Graduation Year</p>
+                <p>{profileData.graduationYear}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.degree && (
+            <div className="flex items-center">
+              <School className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Degree</p>
+                <p>{profileData.degree}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.currentPosition && (
+            <div className="flex items-center">
+              <Briefcase className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Current Position</p>
+                <p>{profileData.currentPosition}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.company && (
+            <div className="flex items-center">
+              <Briefcase className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Company</p>
+                <p>{profileData.company}</p>
+              </div>
+            </div>
+          )}
+          
+          {profileData.industry && (
+            <div className="flex items-center">
+              <Briefcase className="text-gray-500 mr-2" size={18} />
+              <div>
+                <p className="text-sm text-gray-500">Industry</p>
+                <p>{profileData.industry}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Work Experience Section */}
+        {profileData.workExperience && profileData.workExperience.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-lg font-semibold mb-3 text-blue-600">Work Experience</h4>
+            <div className="space-y-4">
+              {profileData.workExperience.map((experience, index) => (
+                <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+                  <h5 className="font-semibold">{experience.title}</h5>
+                  <p className="text-sm font-medium">{experience.company}</p>
+                  {experience.location && (
+                    <p className="text-sm text-gray-600">{experience.location}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {experience.from && new Date(experience.from).toLocaleDateString()} - 
+                    {experience.current ? ' Present' : experience.to && new Date(experience.to).toLocaleDateString()}
+                  </p>
+                  {experience.description && (
+                    <p className="text-sm text-gray-600 mt-2">{experience.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Mentorship Section */}
+        <div className="mt-6">
+          <h4 className="text-lg font-semibold mb-3 text-blue-600">Mentorship</h4>
+          <p className="text-sm text-gray-600">
+            {profileData.mentorshipAvailability 
+              ? 'Available for mentorship' 
+              : 'Not currently available for mentorship'}
+          </p>
+          
+          {profileData.mentorshipAvailability && profileData.mentorshipAreas && profileData.mentorshipAreas.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-medium">Mentorship Areas:</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {profileData.mentorshipAreas.map((area, index) => (
+                  <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    {area}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8"
-    >
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8 text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
-          >
-            My Profile
-          </motion.h1>
-          <p className="text-gray-600 mt-2">Showcase your professional journey</p>
-        </div>
-        
-        {message.text && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`p-4 mb-6 rounded-lg shadow-lg flex items-center justify-between
-              ${message.type === 'success' ? 'bg-green-50 text-green-800 border-l-4 border-green-500' : 
-              'bg-red-50 text-red-800 border-l-4 border-red-500'}`}
-          >
-            <span>{message.text}</span>
-            <button 
-              onClick={() => setMessage({ text: '', type: '' })}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X size={18} />
-            </button>
-          </motion.div>
-        )}
-        
-        {loading ? (
-          <div className="flex flex-col items-center justify-center p-12">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-600">Loading your profile...</p>
-          </div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white rounded-2xl shadow-xl overflow-hidden"
-          >
-            {/* Cover Image and Profile Image Section */}
-            <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
+    <div className="min-h-screen bg-gray-100 pb-10">
               {/* Cover Image */}
+      <div className="relative h-64 bg-blue-600">
               {profileData.coverImage ? (
                 <img
                   src={`http://localhost:3000${profileData.coverImage}`}
                   alt="Cover"
-                  className="h-48 w-full object-cover"
+            className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="h-48 w-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
-              )}
+          <div className="w-full h-full bg-gradient-to-r from-blue-500 to-blue-700"></div>
+        )}
+      </div>
 
+      {/* Profile Content */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-6">
+            {/* Profile Header */}
+            <div className="flex flex-col md:flex-row">
               {/* Profile Image */}
-              <div className="absolute -bottom-16 left-8">
-                <div 
-                  className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center overflow-hidden cursor-pointer"
-                  onClick={() => setIsProfileImageModalOpen(true)} // Open modal on click
-                >
+              <div className="relative mb-4 md:mb-0">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white bg-gray-200">
                   {profileData.profileImage ? (
                     <img
                       src={`http://localhost:3000${profileData.profileImage}`}
@@ -163,151 +360,127 @@ const Profile = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-4xl font-bold text-gray-600">
-                      {profileData.fullName ? profileData.fullName.charAt(0).toUpperCase() : '?'}
-                    </span>
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <Camera size={32} className="text-gray-400" />
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Edit Profile Button */}
+              {/* Profile Info */}
+              <div className="md:ml-6 flex-1">
+                <div className="flex flex-col md:flex-row md:items-center justify-between">
+                  <h1 className="text-2xl font-bold">{profileData.fullName}</h1>
               <button
                 onClick={() => navigate('/edit-profile')}
-                className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-all flex items-center gap-2"
+                    className="mt-2 md:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
-                <Edit2 size={18} />
+                    <Edit2 size={16} className="mr-2" />
                 Edit Profile
               </button>
             </div>
 
-            {/* Profile Image Modal */}
-            {isProfileImageModalOpen && profileData.profileImage && (
-              <div 
-                className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                onClick={() => setIsProfileImageModalOpen(false)} // Close modal on click outside
-              >
-                <div className="bg-white p-4 rounded-lg max-w-lg">
-                  <img
-                    src={`http://localhost:3000${profileData.profileImage}`}
-                    alt="Profile"
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
+                <p className="text-gray-600 mt-1">
+                  {isStudent ? 'Student' : isAlumni ? 'Alumni' : profileData.role || 'User'}
+                </p>
+                
+                {/* Contact & Basic Info */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center">
+                    <Mail className="text-gray-500 mr-2" size={18} />
+                    <span>{profileData.email}</span>
               </div>
-            )}
-
-            {/* Profile Details Section */}
-            <div className="pt-20 px-8 pb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">{profileData.fullName || '-'}</h2>
-                  <p className="text-gray-600 mt-1">@{profileData.username || '-'}</p>
                   
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center text-gray-600">
-                      <Mail size={18} className="mr-2" />
-                      {profileData.email}
-                    </div>
-                    {profileData.graduationYear && (
-                      <div className="flex items-center text-gray-600">
-                        <Calendar size={18} className="mr-2" />
-                        Class of {profileData.graduationYear}
-                      </div>
-                    )}
-                    {profileData.currentPosition && (
-                      <div className="flex items-center text-gray-600">
-                        <Briefcase size={18} className="mr-2" />
-                        {profileData.currentPosition} {profileData.company && `at ${profileData.company}`}
-                      </div>
-                    )}
                     {profileData.linkedinProfile && (
+                    <div className="flex items-center">
+                      <Linkedin className="text-gray-500 mr-2" size={18} />
                       <a 
-                        href={profileData.linkedinProfile}
+                        href={profileData.linkedinProfile.startsWith('http') ? profileData.linkedinProfile : `https://${profileData.linkedinProfile}`} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:underline"
                       >
-                        <Linkedin size={18} className="mr-2" />
                         LinkedIn Profile
                       </a>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  {profileData.bio && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-700 mb-2">About</h3>
-                      <p className="text-gray-600">{profileData.bio}</p>
                     </div>
+                  )}
+                </div>
+                </div>
+              </div>
+              
+            {/* Bio */}
+            {profileData.bio && (
+                <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-2">About</h3>
+                <p className="text-gray-700">{profileData.bio}</p>
+                </div>
+              )}
+
+            {/* Skills & Interests */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Skills */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Skills</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profileData.skills && profileData.skills.length > 0 ? (
+                    profileData.skills.map((skill, index) => (
+                      <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">No skills added yet</p>
                   )}
                 </div>
               </div>
               
-              {/* Resume Section */}
-              {profileData.resume && (
-                <div className="mt-6">
-                  <h3 className="font-semibold text-gray-700 mb-3">Resume</h3>
-                  <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-                    <FileText size={24} className="text-blue-600" />
-                    <span className="text-gray-700">{profileData.resume.split('/').pop()}</span>
-                    <div className="ml-auto flex gap-2">
-                      <button
-                        onClick={handleViewResume}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                      >
-                        <Eye size={18} />
-                        View
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Skills Section */}
-              <div className="mt-8">
-                <h3 className="font-semibold text-gray-700 mb-3">Skills</h3>
-                <div className="flex flex-wrap gap-2">
-                  {profileData.skills && profileData.skills.length > 0 ? (
-                    profileData.skills.map((skill, index) => (
-                      <motion.span
-                        key={index}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                      >
-                        {skill}
-                      </motion.span>
-                    ))
-                  ) : <p className="text-gray-500">No skills added yet</p>}
-                </div>
-              </div>
-              
-              {/* Interests Section */}
-              <div className="mt-6">
-                <h3 className="font-semibold text-gray-700 mb-3">Interests</h3>
+              {/* Interests */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Interests</h3>
                 <div className="flex flex-wrap gap-2">
                   {profileData.interests && profileData.interests.length > 0 ? (
                     profileData.interests.map((interest, index) => (
-                      <motion.span
-                        key={index}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
-                      >
+                      <span key={index} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
                         {interest}
-                      </motion.span>
+                      </span>
                     ))
-                  ) : <p className="text-gray-500">No interests added yet</p>}
+                  ) : (
+                    <p className="text-gray-500 text-sm">No interests added yet</p>
+                  )}
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
+
+            {/* Resume */}
+            {profileData.resume && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-2">Resume</h3>
+                <div className="flex items-center space-x-3">
+                  <button 
+                    onClick={handleViewResume}
+                    className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                  >
+                    <Eye size={16} className="mr-1" />
+                    View
+                  </button>
+                  <button 
+                    onClick={handleDownloadResume}
+                    className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                  >
+                    <Download size={16} className="mr-1" />
+                    Download
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Role-specific information */}
+        {isStudent && renderStudentInfo()}
+        {isAlumni && renderAlumniInfo()}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

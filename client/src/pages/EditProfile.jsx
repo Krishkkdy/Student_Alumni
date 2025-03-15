@@ -3,12 +3,12 @@ import { useUser } from '../UserContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { X, Plus, Save, UserIcon, FileText, Trash, Upload } from 'lucide-react'; // Updated import
+import { X, Plus, Save, UserIcon, FileText, Trash, Upload, GraduationCap, BookOpen, School, Briefcase } from 'lucide-react';
 import { PhotoIcon } from '@heroicons/react/24/outline';
 import { SKILLS_LIST, INTERESTS_LIST } from '../constants/profileConstants';
 
 const EditProfile = () => {
-  const { user } = useUser();
+  const { user, profile, updateProfile, profileType, isStudent, isAlumni } = useUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -26,17 +26,37 @@ const EditProfile = () => {
   const [resumeFileName, setResumeFileName] = useState('');
 
   const [profileData, setProfileData] = useState({
+    // Common fields
     fullName: '',
     email: '',
     username: '',
-    graduationYear: '',
-    currentPosition: '',
-    company: '',
-    linkedinProfile: '',
     bio: '',
     skills: [],
     interests: [],
-    resume: ''
+    linkedinProfile: '',
+    profileImage: '',
+    coverImage: '',
+    resume: '',
+    
+    // Student-specific fields
+    enrollmentYear: '',
+    expectedGraduationYear: '',
+    major: '',
+    minor: '',
+    currentSemester: '',
+    studentId: '',
+    achievements: [],
+    projects: [],
+    
+    // Alumni-specific fields
+    graduationYear: '',
+    degree: '',
+    currentPosition: '',
+    company: '',
+    industry: '',
+    workExperience: [],
+    mentorshipAvailability: false,
+    mentorshipAreas: []
   });
 
   useEffect(() => {
@@ -60,23 +80,30 @@ const EditProfile = () => {
         }
       });
       
-      setProfileData(prev => ({ ...prev, ...response.data }));
+      if (response.data) {
+        // Update the profile in context
+        updateProfile(response.data);
+        
+        // Update local state with profile data
+        setProfileData(prevData => ({
+          ...prevData,
+          ...response.data
+        }));
+        
+        // Set resume filename if it exists
+        if (response.data.resume) {
+          const filename = response.data.resume.split('/').pop();
+          setResumeFileName(filename);
+        }
+      }
       
-      // Set resume filename if it exists
-      if (response.data.resume) {
-        const fileName = response.data.resume.split('/').pop(); // Get filename from path
-        setResumeFileName(fileName);
-      }
+      setLoading(false);
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      if (error.response?.status === 404) {
-        return;
-      }
-      setMessage({ 
-        text: error.response?.data?.message || 'Error fetching profile data', 
-        type: 'error' 
+      console.error('Error fetching profile data:', error);
+      setMessage({
+        text: 'Failed to load profile data. Please try again.',
+        type: 'error'
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -209,60 +236,333 @@ const EditProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
-    const formData = new FormData();
-  
-    // Append all profile data to FormData
-    Object.keys(profileData).forEach((key) => {
-      if (key === 'skills' || key === 'interests') {
-        const array = profileData[key];
-        if (Array.isArray(array)) {
-          formData.append(key, JSON.stringify(array));
-        }
-      } else if (key !== 'profileImage' && key !== 'coverImage') { // Skip image fields
-        formData.append(key, profileData[key]);
-      }
-    });
-  
-    // Handle resume removal or update
-    if (resume) {
-      formData.append('resume', resume);
-    } else if (profileData.resume === '') {
-      formData.append('removeResume', 'true');
-    }
-  
-    // Append files (profileImage, coverImage)
-    if (profileImage) {
-      formData.append('profileImage', profileImage);
-    }
-    if (coverImage) {
-      formData.append('coverImage', coverImage);
-    }
-  
+    
     try {
+      // Create FormData object for file uploads
+      const formData = new FormData();
+      
+      // Add common profile fields
+      formData.append('fullName', profileData.fullName);
+      formData.append('username', profileData.username);
+      formData.append('bio', profileData.bio);
+      formData.append('linkedinProfile', profileData.linkedinProfile);
+      formData.append('skills', JSON.stringify(profileData.skills));
+      formData.append('interests', JSON.stringify(profileData.interests));
+      
+      // Add role-specific fields
+      if (isStudent) {
+        formData.append('enrollmentYear', profileData.enrollmentYear || '');
+        formData.append('expectedGraduationYear', profileData.expectedGraduationYear || '');
+        formData.append('major', profileData.major || '');
+        formData.append('minor', profileData.minor || '');
+        formData.append('currentSemester', profileData.currentSemester || '');
+        formData.append('studentId', profileData.studentId || '');
+        formData.append('achievements', JSON.stringify(profileData.achievements || []));
+        formData.append('projects', JSON.stringify(profileData.projects || []));
+      } else if (isAlumni) {
+        formData.append('graduationYear', profileData.graduationYear || '');
+        formData.append('degree', profileData.degree || '');
+        formData.append('currentPosition', profileData.currentPosition || '');
+        formData.append('company', profileData.company || '');
+        formData.append('industry', profileData.industry || '');
+        formData.append('workExperience', JSON.stringify(profileData.workExperience || []));
+        formData.append('mentorshipAvailability', profileData.mentorshipAvailability || false);
+        formData.append('mentorshipAreas', JSON.stringify(profileData.mentorshipAreas || []));
+      }
+      
+      // Add file uploads if they exist
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
+      }
+      
+      if (coverImage) {
+        formData.append('coverImage', coverImage);
+      }
+      
+      if (resume) {
+        formData.append('resume', resume);
+      }
+      
+      // Send update request
       const response = await axios.put(
         `http://localhost:3000/api/profile/${user.email}`,
         formData,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-          },
+            'Content-Type': 'multipart/form-data'
+          }
         }
       );
-  
-      setProfileData(response.data);
-      setMessage({ text: 'Profile updated successfully!', type: 'success' });
-      setTimeout(() => navigate('/dashboard/profile'), 1500);
+      
+      if (response.data) {
+        // Update profile in context
+        updateProfile(response.data);
+        
+        setMessage({
+          text: 'Profile updated successfully!',
+          type: 'success'
+        });
+        
+        // Redirect to profile page after short delay
+        setTimeout(() => {
+          navigate('/profile');
+        }, 1500);
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({
-        text: error.response?.data?.message || 'Error updating profile',
-        type: 'error',
+        text: error.response?.data?.message || 'Error updating profile. Please try again.',
+        type: 'error'
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to render student-specific form fields
+  const renderStudentFields = () => {
+    return (
+      <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-4 text-blue-600">Academic Information</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Enrollment Year */}
+          <div>
+            <label htmlFor="enrollmentYear" className="block text-sm font-medium text-gray-700 mb-1">
+              Enrollment Year
+            </label>
+            <input
+              type="text"
+              id="enrollmentYear"
+              name="enrollmentYear"
+              value={profileData.enrollmentYear || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. 2020"
+            />
+          </div>
+          
+          {/* Expected Graduation Year */}
+          <div>
+            <label htmlFor="expectedGraduationYear" className="block text-sm font-medium text-gray-700 mb-1">
+              Expected Graduation Year
+            </label>
+            <input
+              type="text"
+              id="expectedGraduationYear"
+              name="expectedGraduationYear"
+              value={profileData.expectedGraduationYear || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. 2024"
+            />
+          </div>
+          
+          {/* Major */}
+          <div>
+            <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-1">
+              Major
+            </label>
+            <input
+              type="text"
+              id="major"
+              name="major"
+              value={profileData.major || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Computer Science"
+            />
+          </div>
+          
+          {/* Minor */}
+          <div>
+            <label htmlFor="minor" className="block text-sm font-medium text-gray-700 mb-1">
+              Minor (if applicable)
+            </label>
+            <input
+              type="text"
+              id="minor"
+              name="minor"
+              value={profileData.minor || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Mathematics"
+            />
+          </div>
+          
+          {/* Current Semester */}
+          <div>
+            <label htmlFor="currentSemester" className="block text-sm font-medium text-gray-700 mb-1">
+              Current Semester
+            </label>
+            <input
+              type="number"
+              id="currentSemester"
+              name="currentSemester"
+              value={profileData.currentSemester || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. 5"
+              min="1"
+              max="12"
+            />
+          </div>
+          
+          {/* Student ID */}
+          <div>
+            <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
+              Student ID
+            </label>
+            <input
+              type="text"
+              id="studentId"
+              name="studentId"
+              value={profileData.studentId || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. S12345"
+            />
+          </div>
+        </div>
+        
+        {/* Projects section would go here */}
+        {/* Achievements section would go here */}
+      </div>
+    );
+  };
+
+  // Function to render alumni-specific form fields
+  const renderAlumniFields = () => {
+    return (
+      <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-4 text-blue-600">Professional Information</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Graduation Year */}
+          <div>
+            <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700 mb-1">
+              Graduation Year
+            </label>
+            <input
+              type="text"
+              id="graduationYear"
+              name="graduationYear"
+              value={profileData.graduationYear || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. 2018"
+            />
+          </div>
+          
+          {/* Degree */}
+          <div>
+            <label htmlFor="degree" className="block text-sm font-medium text-gray-700 mb-1">
+              Degree
+            </label>
+            <input
+              type="text"
+              id="degree"
+              name="degree"
+              value={profileData.degree || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Bachelor of Science"
+            />
+          </div>
+          
+          {/* Major */}
+          <div>
+            <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-1">
+              Major
+            </label>
+            <input
+              type="text"
+              id="major"
+              name="major"
+              value={profileData.major || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Computer Science"
+            />
+          </div>
+          
+          {/* Current Position */}
+          <div>
+            <label htmlFor="currentPosition" className="block text-sm font-medium text-gray-700 mb-1">
+              Current Position
+            </label>
+            <input
+              type="text"
+              id="currentPosition"
+              name="currentPosition"
+              value={profileData.currentPosition || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Software Engineer"
+            />
+          </div>
+          
+          {/* Company */}
+          <div>
+            <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+              Company
+            </label>
+            <input
+              type="text"
+              id="company"
+              name="company"
+              value={profileData.company || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Google"
+            />
+          </div>
+          
+          {/* Industry */}
+          <div>
+            <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
+              Industry
+            </label>
+            <input
+              type="text"
+              id="industry"
+              name="industry"
+              value={profileData.industry || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Technology"
+            />
+          </div>
+        </div>
+        
+        {/* Mentorship Availability */}
+        <div className="mt-6">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="mentorshipAvailability"
+              name="mentorshipAvailability"
+              checked={profileData.mentorshipAvailability || false}
+              onChange={(e) => setProfileData({
+                ...profileData,
+                mentorshipAvailability: e.target.checked
+              })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="mentorshipAvailability" className="ml-2 block text-sm text-gray-700">
+              Available for mentorship
+            </label>
+          </div>
+          <p className="mt-1 text-sm text-gray-500">
+            Indicate if you're available to mentor current students
+          </p>
+        </div>
+        
+        {/* Work Experience section would go here */}
+        {/* Mentorship Areas section would go here */}
+      </div>
+    );
   };
 
   return (
@@ -436,48 +736,6 @@ const EditProfile = () => {
                   onChange={handleInputChange}
                   className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Choose a username"
-                />
-              </div>
-
-              <div className="col-span-2 md:col-span-1 space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Graduation Year
-                </label>
-                <input
-                  type="text"
-                  name="graduationYear"
-                  value={profileData.graduationYear}
-                  onChange={handleInputChange}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter graduation year"
-                />
-              </div>
-
-              <div className="col-span-2 md:col-span-1 space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Current Position
-                </label>
-                <input
-                  type="text"
-                  name="currentPosition"
-                  value={profileData.currentPosition}
-                  onChange={handleInputChange}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your current position"
-                />
-              </div>
-
-              <div className="col-span-2 md:col-span-1 space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Company
-                </label>
-                <input
-                  type="text"
-                  name="company"
-                  value={profileData.company}
-                  onChange={handleInputChange}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your company name"
                 />
               </div>
 
@@ -704,6 +962,12 @@ const EditProfile = () => {
                 </div>
               </div>
             </div>
+
+            {/* Student-specific fields */}
+            {isStudent && renderStudentFields()}
+
+            {/* Alumni-specific fields */}
+            {isAlumni && renderAlumniFields()}
           </div>
         </motion.form>
       </div>

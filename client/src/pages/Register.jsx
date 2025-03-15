@@ -8,7 +8,8 @@ function Register() {
     username: "", 
     email: "", 
     password: "",
-    role: "student" // Default role is student
+    role: "student", // Default role is student
+    graduationYear: "" // Add default graduation year field
   });
 
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -37,6 +38,15 @@ function Register() {
     setError("");
   };
 
+  const handleRoleChange = (role) => {
+    if (role === 'alumni') {
+      // Set a default graduation year for alumni
+      setUserData({ ...userData, role, graduationYear: new Date().getFullYear().toString() });
+    } else {
+      setUserData({ ...userData, role, graduationYear: "" });
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     
@@ -49,13 +59,25 @@ function Register() {
     setError("");
 
     try {
-        const res = await axios.post("http://localhost:3000/api/auth/signup", userData);
-        navigate("/login", { state: { successMessage: res.data.message || "Successfully registered! Please log in." } });
+        // Create request data with or without graduationYear based on role
+        const requestData = { ...userData };
+        
+        const res = await axios.post("http://localhost:3000/api/auth/signup", requestData);
+        
+        // Store the profile type in localStorage for future reference
+        localStorage.setItem('profileType', userData.role);
+        
+        navigate("/login", { 
+          state: { 
+            successMessage: res.data.message || "Successfully registered! Please log in.",
+            profileType: userData.role
+          } 
+        });
     } catch (error) {
         setError(error.response?.data?.message || "Registration failed! Please check your connection.");
         setIsLoading(false);
     }
-};
+  };
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
@@ -150,7 +172,7 @@ function Register() {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setUserData({ ...userData, role: 'student' })}
+                    onClick={() => handleRoleChange('student')}
                     className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 ${
                       userData.role === 'student'
                         ? 'border-purple-500 bg-purple-50 text-purple-700'
@@ -162,7 +184,7 @@ function Register() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUserData({ ...userData, role: 'alumni' })}
+                    onClick={() => handleRoleChange('alumni')}
                     className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 ${
                       userData.role === 'alumni'
                         ? 'border-purple-500 bg-purple-50 text-purple-700'

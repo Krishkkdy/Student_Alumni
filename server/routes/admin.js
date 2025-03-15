@@ -4,6 +4,8 @@ const adminAuth = require('../middleware/adminAuth');
 const Auth = require('../models/authSchema');
 const Profile = require('../models/Profile');
 const bcrypt = require('bcryptjs');
+const AlumniProfile = require('../models/AlumniProfile');
+const StudentProfile = require('../models/StudentProfile');
 
 // Add new user (admin only)
 router.post('/users', adminAuth, async (req, res) => {
@@ -115,7 +117,7 @@ router.delete('/users/:userId', adminAuth, async (req, res) => {
 // Update user role (only for non-admin users)
 router.patch('/users/:userId/role', adminAuth, async (req, res) => {
     try {
-        const { role } = req.body;
+        const { role, graduationYear } = req.body;
         const userId = req.params.userId;
         
         // Get user
@@ -142,6 +144,34 @@ router.patch('/users/:userId/role', adminAuth, async (req, res) => {
                 email: user.email,
                 role: role
             });
+        }
+
+        // Handle role-specific profiles
+        if (role === 'alumni') {
+            // Check if alumni profile exists
+            let alumniProfile = await AlumniProfile.findOne({ user: userId });
+            if (!alumniProfile) {
+                // Create alumni profile with graduation year
+                alumniProfile = await AlumniProfile.create({
+                    user: userId,
+                    username: user.username,
+                    email: user.email,
+                    fullName: user.username,
+                    graduationYear: graduationYear || new Date().getFullYear().toString()
+                });
+            }
+        } else if (role === 'student') {
+            // Check if student profile exists
+            let studentProfile = await StudentProfile.findOne({ user: userId });
+            if (!studentProfile) {
+                // Create student profile
+                studentProfile = await StudentProfile.create({
+                    user: userId,
+                    username: user.username,
+                    email: user.email,
+                    fullName: user.username
+                });
+            }
         }
 
         res.json({
