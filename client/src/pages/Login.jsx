@@ -118,25 +118,33 @@ function Login({ setToken }) {
         // If admin, proceed to admin dashboard
         localStorage.setItem("token", res.data.token);
         setToken(res.data.token);
-        updateUser({
+        
+        // Store user data in localStorage
+        const userData = {
           name: res.data.user.name || 'User',
           email: res.data.user.email,
           role: res.data.user.role,
-        });
+          id: res.data.user._id
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        updateUser(userData);
+        
         navigate("/admin");
       } else if (res.data.user.role === 'alumni') {
         // If alumni, redirect to alumni dashboard
         localStorage.setItem("token", res.data.token);
         setToken(res.data.token);
         
-        // Store user data
-        updateUser({
+        // Store user data in localStorage
+        const userData = {
           name: res.data.user.name || 'User',
           email: res.data.user.email,
           role: res.data.user.role,
           id: res.data.user._id,
           profileId: res.data.user.profileId
-        });
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        updateUser(userData);
         
         // Fetch profile data if profileId is available
         if (res.data.user.profileId) {
@@ -164,14 +172,16 @@ function Login({ setToken }) {
         localStorage.setItem("token", res.data.token);
         setToken(res.data.token);
         
-        // Store user data
-        updateUser({
+        // Store user data in localStorage
+        const userData = {
           name: res.data.user.name || 'User',
           email: res.data.user.email,
           role: res.data.user.role,
           id: res.data.user._id,
           profileId: res.data.user.profileId
-        });
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        updateUser(userData);
         
         // Fetch profile data if profileId is available
         if (res.data.user.profileId) {

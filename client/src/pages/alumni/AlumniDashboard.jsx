@@ -15,18 +15,180 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  Home,
+  Settings
 } from 'lucide-react';
 import { useUser } from '../../UserContext';
 
 // Import components for different sections
 import MentorshipRequests from './MentorshipRequests';
 import JobPostings from './JobPostings';
+import Events from './Events';
+import Network from './Network';
+import Profile from '../Profile';
+import EditProfile from '../EditProfile';
 
-const AlumniDashboard = ({ handleLogout }) => {
+// Alumni Navbar Component
+const AlumniNavbar = ({ handleLogout }) => {
+  const location = useLocation();
   const { user } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
+
+  const isActive = (path) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  return (
+    <aside className="w-64 bg-white shadow-md h-screen fixed left-0 top-0 overflow-y-auto">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold text-blue-600">Alumni Portal</h2>
+        <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.name || 'Alumni'}</p>
+      </div>
+      
+      <nav className="p-4">
+        <ul className="space-y-2">
+          <li>
+            <Link 
+              to="/alumni" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni') && !isActive('/alumni/mentorship') && !isActive('/alumni/jobs') && !isActive('/alumni/events') && !isActive('/alumni/network') && !isActive('/alumni/settings') && !isActive('/alumni/profile') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <Home className="h-5 w-5 mr-3" />
+              Dashboard
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/profile" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/profile') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <User className="h-5 w-5 mr-3" />
+              My Profile
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/edit-profile" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/edit-profile') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <Edit2 className="h-5 w-5 mr-3" />
+              Edit Profile
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/mentorship" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/mentorship') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <MessageSquare className="h-5 w-5 mr-3" />
+              Mentorship
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/jobs" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/jobs') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <Briefcase className="h-5 w-5 mr-3" />
+              Job Postings
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/events" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/events') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <Calendar className="h-5 w-5 mr-3" />
+              Events
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/network" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/network') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <Users className="h-5 w-5 mr-3" />
+              Network
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/alumni/settings" 
+              className={`flex items-center p-3 rounded-lg ${isActive('/alumni/settings') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <Settings className="h-5 w-5 mr-3" />
+              Settings
+            </Link>
+          </li>
+        </ul>
+      </nav>
+      
+      <div className="p-4 border-t mt-auto">
+        <div className="flex items-center mb-4">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium">{user?.name || 'Alumni User'}</p>
+            <p className="text-xs text-gray-500">{user?.email || 'alumni@example.com'}</p>
+          </div>
+        </div>
+        <button 
+          onClick={handleLogout}
+          className="w-full flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50"
+        >
+          <LogOut className="h-5 w-5 mr-3" />
+          Logout
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+// Alumni Settings Component
+const AlumniSettings = () => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold mb-6">Settings</h1>
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <h2 className="text-lg font-semibold mb-4">Account Settings</h2>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email Notifications</label>
+          <div className="flex items-center">
+            <input type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+            <span className="ml-2 text-sm text-gray-600">Receive mentorship request notifications</span>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Profile Visibility</label>
+          <select className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+            <option>Public</option>
+            <option>Students Only</option>
+            <option>Private</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mentorship Availability</label>
+          <select className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+            <option>Available</option>
+            <option>Limited Availability</option>
+            <option>Not Available</option>
+          </select>
+        </div>
+      </div>
+      <div className="mt-6">
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// Dashboard Home Component
+const DashboardHome = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
   const [dashboardStats, setDashboardStats] = useState({
     mentorshipRequests: 0,
     activeMentorships: 0,
@@ -76,8 +238,7 @@ const AlumniDashboard = ({ handleLogout }) => {
     fetchDashboardStats();
   }, []);
 
-  // Placeholder components for routes that will be implemented separately
-  const DashboardHome = () => (
+  return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Alumni Dashboard</h1>
       
@@ -93,6 +254,33 @@ const AlumniDashboard = ({ handleLogout }) => {
         </div>
       ) : (
         <>
+          {/* Profile Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8">
+            <div className="flex items-center">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+              </div>
+              <div className="ml-4">
+                <h2 className="text-xl font-semibold">{user?.name || 'Alumni User'}</h2>
+                <p className="text-gray-500">{user?.email || 'alumni@example.com'}</p>
+                <div className="flex mt-2 space-x-2">
+                  <Link 
+                    to="/alumni/profile" 
+                    className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors"
+                  >
+                    View Profile
+                  </Link>
+                  <Link 
+                    to="/alumni/edit-profile" 
+                    className="text-sm bg-gray-50 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    Edit Profile
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* Stats Cards */}
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -162,6 +350,26 @@ const AlumniDashboard = ({ handleLogout }) => {
               <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
               <div className="space-y-3">
                 <button 
+                  onClick={() => navigate('/alumni/profile')}
+                  className="w-full flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 rounded-md bg-indigo-50">
+                    <User className="h-5 w-5 text-indigo-500" />
+                  </div>
+                  <span className="ml-3 font-medium">View My Profile</span>
+                </button>
+                
+                <button 
+                  onClick={() => navigate('/alumni/edit-profile')}
+                  className="w-full flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 rounded-md bg-teal-50">
+                    <Edit2 className="h-5 w-5 text-teal-500" />
+                  </div>
+                  <span className="ml-3 font-medium">Edit My Profile</span>
+                </button>
+                
+                <button 
                   onClick={() => navigate('/alumni/mentorship')}
                   className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -208,7 +416,7 @@ const AlumniDashboard = ({ handleLogout }) => {
               </div>
             </div>
             
-            {/* Recent Activity - Placeholder */}
+            {/* Recent Activity */}
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
               <div className="space-y-4">
@@ -258,145 +466,26 @@ const AlumniDashboard = ({ handleLogout }) => {
       )}
     </div>
   );
+};
 
+// Main Alumni Dashboard Component
+const AlumniDashboard = ({ handleLogout }) => {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 hidden md:block">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">Alumni Portal</h1>
-        </div>
-        
-        <div className="p-4">
-          <nav className="space-y-1">
-            <Link
-              to="/alumni"
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                location.pathname === '/alumni'
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <BarChart2 className="mr-3 h-5 w-5" />
-              Dashboard
-            </Link>
-            
-            <Link
-              to="/alumni/profile"
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                location.pathname === '/alumni/profile'
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <User className="mr-3 h-5 w-5" />
-              My Profile
-            </Link>
-            
-            <Link
-              to="/alumni/mentorship"
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                location.pathname.includes('/alumni/mentorship')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <MessageSquare className="mr-3 h-5 w-5" />
-              Mentorship
-              {dashboardStats.mentorshipRequests > 0 && (
-                <span className="ml-auto bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs">
-                  {dashboardStats.mentorshipRequests}
-                </span>
-              )}
-            </Link>
-            
-            <Link
-              to="/alumni/jobs"
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                location.pathname.includes('/alumni/jobs')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <Briefcase className="mr-3 h-5 w-5" />
-              Job Postings
-            </Link>
-            
-            <Link
-              to="/alumni/events"
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                location.pathname.includes('/alumni/events')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <Calendar className="mr-3 h-5 w-5" />
-              Events
-            </Link>
-            
-            <Link
-              to="/alumni/network"
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                location.pathname.includes('/alumni/network')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <Users className="mr-3 h-5 w-5" />
-              Networking
-            </Link>
-          </nav>
-        </div>
-        
-        <div className="absolute bottom-0 w-64 p-4 border-t border-gray-200">
-          <div className="flex items-center mb-4">
-            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-              {user?.profile?.firstName?.charAt(0) || user?.username?.charAt(0) || 'A'}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">
-                {user?.profile?.firstName 
-                  ? `${user.profile.firstName} ${user.profile.lastName || ''}`
-                  : user?.username}
-              </p>
-              <p className="text-xs text-gray-500">Alumni</p>
-            </div>
-          </div>
-          
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </button>
-        </div>
-      </div>
+    <div className="flex h-screen bg-gray-100">
+      <AlumniNavbar handleLogout={handleLogout} />
       
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-10">
-        <div className="flex items-center justify-between p-4">
-          <h1 className="text-xl font-bold text-gray-800">Alumni Portal</h1>
-          <button className="p-2 rounded-md bg-gray-100">
-            <span className="sr-only">Open menu</span>
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-x-hidden overflow-y-auto ml-64">
         <Routes>
           <Route path="/" element={<DashboardHome />} />
-          <Route path="/profile" element={<div className="p-6"><h1 className="text-2xl font-bold">My Profile</h1></div>} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/mentorship/*" element={<MentorshipRequests />} />
           <Route path="/jobs/*" element={<JobPostings />} />
-          <Route path="/events/*" element={<div className="p-6"><h1 className="text-2xl font-bold">Events</h1></div>} />
-          <Route path="/network/*" element={<div className="p-6"><h1 className="text-2xl font-bold">Networking</h1></div>} />
+          <Route path="/events/*" element={<Events />} />
+          <Route path="/network/*" element={<Network />} />
+          <Route path="/settings" element={<AlumniSettings />} />
         </Routes>
-      </div>
+      </main>
     </div>
   );
 };

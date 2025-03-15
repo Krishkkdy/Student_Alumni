@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AlumniDashboard from "./pages/alumni/AlumniDashboard";
 import EditProfile from './pages/EditProfile';
 import Profile from './pages/Profile';
 import MentorshipRequests from "./pages/alumni/MentorshipRequests";
@@ -45,6 +46,28 @@ const StudentRoute = ({ children }) => {
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
+  
+  // Get user role for redirection
+  const getUserRole = () => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.role;
+      } catch (e) {
+        console.error("Error parsing user data:", e);
+      }
+    }
+    return null;
+  };
+  
+  // Determine redirect path based on user role
+  const getRedirectPath = () => {
+    const role = getUserRole();
+    if (role === 'admin') return '/admin';
+    if (role === 'alumni') return '/alumni';
+    return '/dashboard';
+  };
 
   const handleLogout = () => {
     // Clear all auth-related data
@@ -62,11 +85,11 @@ function App() {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route 
             path="/login" 
-            element={token ? <Navigate to="/dashboard" /> : <Login setToken={setToken} />} 
+            element={token ? <Navigate to={getRedirectPath()} /> : <Login setToken={setToken} />} 
           />
           <Route 
             path="/register" 
-            element={token ? <Navigate to="/dashboard" /> : <Register />} 
+            element={token ? <Navigate to={getRedirectPath()} /> : <Register />} 
           />
           <Route 
             path="/dashboard/*" 
@@ -88,7 +111,7 @@ function App() {
             path="/alumni/*" 
             element={
               <AlumniRoute>
-                <Dashboard handleLogout={handleLogout} />
+                <AlumniDashboard handleLogout={handleLogout} />
               </AlumniRoute>
             } 
           />

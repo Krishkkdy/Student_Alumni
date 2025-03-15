@@ -71,6 +71,16 @@ const EditProfile = () => {
     }
   }, [user]);
 
+  // Add a new useEffect to set default graduation year for alumni users
+  useEffect(() => {
+    if (isAlumni && !profileData.graduationYear) {
+      setProfileData(prevData => ({
+        ...prevData,
+        graduationYear: new Date().getFullYear().toString()
+      }));
+    }
+  }, [isAlumni, profileData.graduationYear]);
+
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -260,7 +270,10 @@ const EditProfile = () => {
         formData.append('achievements', JSON.stringify(profileData.achievements || []));
         formData.append('projects', JSON.stringify(profileData.projects || []));
       } else if (isAlumni) {
-        formData.append('graduationYear', profileData.graduationYear || '');
+        // Ensure graduationYear is never empty for alumni users
+        const graduationYear = profileData.graduationYear || new Date().getFullYear().toString();
+        formData.append('graduationYear', graduationYear);
+        
         formData.append('degree', profileData.degree || '');
         formData.append('currentPosition', profileData.currentPosition || '');
         formData.append('company', profileData.company || '');
@@ -306,7 +319,7 @@ const EditProfile = () => {
         
         // Redirect to profile page after short delay
         setTimeout(() => {
-          navigate('/profile');
+          navigate('/alumni');
         }, 1500);
       }
     } catch (error) {
@@ -442,7 +455,7 @@ const EditProfile = () => {
           {/* Graduation Year */}
           <div>
             <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700 mb-1">
-              Graduation Year
+              Graduation Year <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -452,7 +465,9 @@ const EditProfile = () => {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g. 2018"
+              required
             />
+            <p className="text-xs text-gray-500 mt-1">This field is required for alumni profiles.</p>
           </div>
           
           {/* Degree */}
