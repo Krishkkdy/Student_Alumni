@@ -421,3 +421,20 @@ exports.getDashboardStats = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 }; 
+
+
+exports.getAllprofile = async (req,res) => {
+    try {
+        // Fetch all alumni profiles from the database
+        const alumniProfiles = await AlumniProfile.find({}, 'username'); // Only fetch the 'name' field
+
+        // Extract the names from the profiles
+        const alumniNames = alumniProfiles.map(profile => profile.username);
+
+        // Send the response with the alumni names
+        res.status(200).json({ success: true, data: alumniNames });
+    } catch (error) {
+        // Handle any errors that occur
+        res.status(500).json({ success: false, message: 'Error fetching alumni profiles', error: error.message });
+    }
+};

@@ -28,6 +28,7 @@ import Events from './Events';
 import Network from './Network';
 import Profile from '../Profile';
 import EditProfile from '../EditProfile';
+import AlumniList from '../../AlumniList';
 
 // Alumni Navbar Component
 const AlumniNavbar = ({ handleLogout }) => {
@@ -280,7 +281,7 @@ const DashboardHome = () => {
               </div>
             </div>
           </div>
-
+          <AlumniList/>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* Stats Cards */}
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">

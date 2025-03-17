@@ -3,6 +3,8 @@ const router = express.Router();
 const alumniAuth = require('../middleware/alumniAuth');
 const alumniController = require('../controllers/alumni.controller');
 
+router.get('/all-alumni',alumniController.getAllprofile);
+
 // Alumni profile routes
 router.get('/profile', alumniAuth, alumniController.getProfile);
 router.put('/profile', alumniAuth, alumniController.updateProfile);
