@@ -423,16 +423,19 @@ exports.getDashboardStats = async (req, res) => {
 }; 
 
 
-exports.getAllprofile = async (req,res) => {
+exports.getAllprofile = async (req, res) => {
     try {
-        // Fetch all alumni profiles from the database
-        const alumniProfiles = await AlumniProfile.find({}, 'username'); // Only fetch the 'name' field
+        // Fetch all alumni profiles from the database, including the 'username' and 'bio' fields
+        const alumniProfiles = await AlumniProfile.find({}, 'username bio');
 
-        // Extract the names from the profiles
-        const alumniNames = alumniProfiles.map(profile => profile.username);
+        // Map the profiles to include both username and bio
+        const alumniData = alumniProfiles.map(profile => ({
+            username: profile.username,
+            bio: profile.bio,
+        }));
 
-        // Send the response with the alumni names
-        res.status(200).json({ success: true, data: alumniNames });
+        // Send the response with the alumni data
+        res.status(200).json({ success: true, data: alumniData });
     } catch (error) {
         // Handle any errors that occur
         res.status(500).json({ success: false, message: 'Error fetching alumni profiles', error: error.message });
