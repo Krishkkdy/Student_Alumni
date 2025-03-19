@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { FaUserPlus } from 'react-icons/fa'; // Import an icon for the connect button
 
 const Network = () => {
     const [alumni, setAlumni] = useState([]);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,7 +43,11 @@ const Network = () => {
     }, []);
 
     const handleAlumniClick = (id) => {
-        navigate(`/profile/${id}`); // Navigate to the profile view with the user ID
+        navigate(`/profile/alumni/${id}`); // Navigate to alumni profile
+    };
+
+    const handleStudentClick = (id) => {
+        navigate(`/profile/student/${id}`); // Navigate to student profile
     };
 
     if (loading) {
@@ -68,6 +73,7 @@ const Network = () => {
             <h1 className="text-3xl font-bold text-gray-800 mb-8">Network</h1>
 
             <div className="flex flex-col lg:flex-row gap-8">
+                {/* Alumni Section */}
                 <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-[80vh] overflow-y-scroll">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Alumni</h2>
                     <div className="flex flex-col gap-4">
@@ -83,7 +89,7 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3
                                             className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-500"
-                                            onClick={() => handleAlumniClick(alum._id)} // Handle click on username
+                                            onClick={() => handleAlumniClick(alum._id)} // Handle alumni click
                                         >
                                             {alum?.username || 'Unknown Alumni'}
                                         </h3>
@@ -114,7 +120,7 @@ const Network = () => {
                                     className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
                                     onClick={() => console.log(`Connect with ${alum?.username || 'Unknown Alumni'}`)}
                                 >
-                                    <Link className="w-5 h-5" />
+                                    <FaUserPlus className="w-5 h-5" /> {/* Connect icon */}
                                 </button>
                             </div>
                         ))}
@@ -135,7 +141,12 @@ const Network = () => {
                                         {student?.username?.charAt(0)?.toUpperCase() || 'S'}
                                     </div>
                                     <div className="ml-4">
-                                        <h3 className="text-lg font-medium text-gray-700">{student?.username || 'Unknown Student'}</h3>
+                                        <h3
+                                            className="text-lg font-medium text-gray-700 cursor-pointer hover:text-green-500"
+                                            onClick={() => handleStudentClick(student._id)} // Handle student click
+                                        >
+                                            {student?.username || 'Unknown Student'}
+                                        </h3>
                                         <p className="text-sm text-gray-500">{student?.bio || 'No bio available'}</p>
                                         <div className="flex flex-wrap gap-2 mt-2">
                                             {student?.skills?.map((skill, skillIndex) => (
@@ -163,7 +174,7 @@ const Network = () => {
                                     className="p-2 text-gray-500 hover:text-green-500 transition-colors"
                                     onClick={() => console.log(`Connect with ${student?.username || 'Unknown Student'}`)}
                                 >
-                                    <Link className="w-5 h-5" />
+                                    <FaUserPlus className="w-5 h-5" /> {/* Connect icon */}
                                 </button>
                             </div>
                         ))}

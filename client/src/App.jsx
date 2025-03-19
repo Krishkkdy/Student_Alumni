@@ -88,7 +88,7 @@ function App() {
             path="/login" 
             element={token ? <Navigate to={getRedirectPath()} /> : <Login setToken={setToken} />} 
           />
-          <Route path="/profile/:id" element={<ProfileView />} />
+          <Route path="/profile/:type/:id" element={<ProfileView />} />
 
           <Route 
             path="/register" 

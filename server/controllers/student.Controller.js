@@ -22,3 +22,15 @@ exports.getAllprofile = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error fetching student profiles', error: error.message });
     }
 };
+
+exports.profileView = async (req, res) => {
+    try {
+        const profile = await StudentProfile.findById(req.params.id);
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Profile not found' });
+        }
+        res.status(200).json({ success: true, data: profile });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching profile', error: error.message });
+    }
+};
