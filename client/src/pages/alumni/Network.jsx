@@ -72,7 +72,7 @@ const Network = () => {
             {/* Flex Container for Alumni and Students Sections */}
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Alumni Section */}
-                <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-[80vh] overflow-y-scroll">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Alumni</h2>
                     <div className="flex flex-col gap-4">
                         {alumni.map((alum, index) => (
@@ -87,6 +87,28 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3 className="text-lg font-medium text-gray-700">{alum?.username || 'Unknown Alumni'}</h3>
                                         <p className="text-sm text-gray-500">{alum?.bio || 'No bio available'}</p>
+                                        {/* Display skills as tags */}
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {alum?.skills?.map((skill, skillIndex) => (
+                                                <span
+                                                    key={skillIndex}
+                                                    className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded-full"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {/* Display interests as tags */}
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {alum?.interests?.map((interest, interestIndex) => (
+                                                <span
+                                                    key={interestIndex}
+                                                    className="px-2 py-1 text-sm bg-green-100 text-green-800 rounded-full"
+                                                >
+                                                    {interest}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                                 <button
@@ -101,7 +123,7 @@ const Network = () => {
                 </div>
 
                 {/* Students Section */}
-                <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-[80vh] overflow-y-scroll">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Students</h2>
                     <div className="flex flex-col gap-4">
                         {students.map((student, index) => (
@@ -116,6 +138,28 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3 className="text-lg font-medium text-gray-700">{student?.username || 'Unknown Student'}</h3>
                                         <p className="text-sm text-gray-500">{student?.bio || 'No bio available'}</p>
+                                        {/* Display skills as tags */}
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {student?.skills?.map((skill, skillIndex) => (
+                                                <span
+                                                    key={skillIndex}
+                                                    className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded-full"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {/* Display interests as tags */}
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {student?.interests?.map((interest, interestIndex) => (
+                                                <span
+                                                    key={interestIndex}
+                                                    className="px-2 py-1 text-sm bg-green-100 text-green-800 rounded-full"
+                                                >
+                                                    {interest}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                                 <button

@@ -426,12 +426,14 @@ exports.getDashboardStats = async (req, res) => {
 exports.getAllprofile = async (req, res) => {
     try {
         // Fetch all alumni profiles from the database, including the 'username' and 'bio' fields
-        const alumniProfiles = await AlumniProfile.find({}, 'username bio');
+        const alumniProfiles = await AlumniProfile.find({}, '_id username bio skills interests');
 
         // Map the profiles to include both username and bio
         const alumniData = alumniProfiles.map(profile => ({
             username: profile.username,
             bio: profile.bio,
+            skills: profile.skills || [],
+            interests: profile.interests || [], 
         }));
 
         // Send the response with the alumni data
