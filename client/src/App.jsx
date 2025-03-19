@@ -10,6 +10,7 @@ import EditProfile from './pages/EditProfile';
 import Profile from './pages/Profile';
 import MentorshipRequests from "./pages/alumni/MentorshipRequests";
 import JobPostings from "./pages/alumni/JobPostings";
+import ProfileView from "./pages/alumni/ProfileView";
 
 // Protected Route Component for Admin
 const AdminRoute = ({ children }) => {
@@ -87,6 +88,8 @@ function App() {
             path="/login" 
             element={token ? <Navigate to={getRedirectPath()} /> : <Login setToken={setToken} />} 
           />
+          <Route path="/profile/:id" element={<ProfileView />} />
+
           <Route 
             path="/register" 
             element={token ? <Navigate to={getRedirectPath()} /> : <Register />} 

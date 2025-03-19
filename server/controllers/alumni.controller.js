@@ -430,6 +430,7 @@ exports.getAllprofile = async (req, res) => {
 
         // Map the profiles to include both username and bio
         const alumniData = alumniProfiles.map(profile => ({
+            _id : profile._id,
             username: profile.username,
             bio: profile.bio,
             skills: profile.skills || [],
@@ -441,5 +442,18 @@ exports.getAllprofile = async (req, res) => {
     } catch (error) {
         // Handle any errors that occur
         res.status(500).json({ success: false, message: 'Error fetching alumni profiles', error: error.message });
+    }
+};
+
+// In your backend route file (e.g., alumniRoutes.js)
+exports.profileView = async (req, res) => {
+    try {
+        const profile = await AlumniProfile.findById(req.params.id);
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Profile not found' });
+        }
+        res.status(200).json({ success: true, data: profile });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching profile', error: error.message });
     }
 };

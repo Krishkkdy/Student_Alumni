@@ -4,10 +4,11 @@ const mongoose = require('mongoose');
 exports.getAllprofile = async (req, res) => {
     try {
         // Fetch all student profiles from the database, including the 'username', 'bio', and 'skills' fields
-        const studentProfiles = await StudentProfile.find({}, 'username bio skills interests');
+        const studentProfiles = await StudentProfile.find({}, '_id username bio skills interests');
 
         // Map the profiles to include username, bio, and skills
         const studentData = studentProfiles.map(profile => ({
+            _id: profile._id,
             username: profile.username,
             bio: profile.bio,
             skills: profile.skills || [],

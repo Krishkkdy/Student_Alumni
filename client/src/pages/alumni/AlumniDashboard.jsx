@@ -28,6 +28,7 @@ import Events from './Events';
 import Network from './Network';
 import Profile from '../Profile';
 import EditProfile from '../EditProfile';
+import ProfileView from './ProfileView';
 
 // Alumni Navbar Component
 const AlumniNavbar = ({ handleLogout }) => {
@@ -483,6 +484,8 @@ const AlumniDashboard = ({ handleLogout }) => {
           <Route path="/events/*" element={<Events />} />
           <Route path="/network/*" element={<Network />} />
           <Route path="/settings" element={<AlumniSettings />} />
+          <Route path="/profile/:id" element={<ProfileView />} />
+
         </Routes>
       </main>
     </div>

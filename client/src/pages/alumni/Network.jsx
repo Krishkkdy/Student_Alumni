@@ -1,42 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'lucide-react'; // Import the connection icon
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 
 const Network = () => {
-    const [alumni, setAlumni] = useState([]); // State for alumni data
-    const [students, setStudents] = useState([]); // State for students data
-    const [loading, setLoading] = useState(true); // State for loading
-    const [error, setError] = useState(null); // State for error handling
+    const [alumni, setAlumni] = useState([]);
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate(); // Initialize useNavigate
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+                const token = localStorage.getItem('token');
                 if (!token) {
                     throw new Error('No token found. Please log in.');
                 }
 
-                // Fetch alumni data
                 const alumniResponse = await axios.get('http://localhost:3000/api/alumni/all-alumni', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
 
-                // Fetch students data
                 const studentsResponse = await axios.get('http://localhost:3000/api/student/all-students', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
 
-                // Log the responses for debugging
-                console.log('Alumni Response:', alumniResponse.data);
-                console.log('Students Response:', studentsResponse.data);
-
-                // Set the fetched data to state
-                setAlumni(alumniResponse.data.data); // Array of alumni data
-                setStudents(studentsResponse.data.data); // Array of students data
+                setAlumni(alumniResponse.data.data);
+                setStudents(studentsResponse.data.data);
                 setLoading(false);
             } catch (err) {
                 setError(err.message);
@@ -46,6 +40,10 @@ const Network = () => {
 
         fetchData();
     }, []);
+
+    const handleAlumniClick = (id) => {
+        navigate(`/profile/${id}`); // Navigate to the profile view with the user ID
+    };
 
     if (loading) {
         return (
@@ -69,9 +67,7 @@ const Network = () => {
         <div className="p-8 bg-gray-50 min-h-screen">
             <h1 className="text-3xl font-bold text-gray-800 mb-8">Network</h1>
 
-            {/* Flex Container for Alumni and Students Sections */}
             <div className="flex flex-col lg:flex-row gap-8">
-                {/* Alumni Section */}
                 <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-[80vh] overflow-y-scroll">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Alumni</h2>
                     <div className="flex flex-col gap-4">
@@ -82,12 +78,16 @@ const Network = () => {
                             >
                                 <div className="flex items-center">
                                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                                        {alum?.username?.charAt(0)?.toUpperCase() || 'A'} {/* Fallback to 'A' if username is missing */}
+                                        {alum?.username?.charAt(0)?.toUpperCase() || 'A'}
                                     </div>
                                     <div className="ml-4">
-                                        <h3 className="text-lg font-medium text-gray-700">{alum?.username || 'Unknown Alumni'}</h3>
+                                        <h3
+                                            className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-500"
+                                            onClick={() => handleAlumniClick(alum._id)} // Handle click on username
+                                        >
+                                            {alum?.username || 'Unknown Alumni'}
+                                        </h3>
                                         <p className="text-sm text-gray-500">{alum?.bio || 'No bio available'}</p>
-                                        {/* Display skills as tags */}
                                         <div className="flex flex-wrap gap-2 mt-2">
                                             {alum?.skills?.map((skill, skillIndex) => (
                                                 <span
@@ -98,7 +98,6 @@ const Network = () => {
                                                 </span>
                                             ))}
                                         </div>
-                                        {/* Display interests as tags */}
                                         <div className="flex flex-wrap gap-2 mt-2">
                                             {alum?.interests?.map((interest, interestIndex) => (
                                                 <span
@@ -115,7 +114,7 @@ const Network = () => {
                                     className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
                                     onClick={() => console.log(`Connect with ${alum?.username || 'Unknown Alumni'}`)}
                                 >
-                                    <Link className="w-5 h-5" /> {/* Connection Icon */}
+                                    <Link className="w-5 h-5" />
                                 </button>
                             </div>
                         ))}
@@ -133,12 +132,11 @@ const Network = () => {
                             >
                                 <div className="flex items-center">
                                     <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
-                                        {student?.username?.charAt(0)?.toUpperCase() || 'S'} {/* Fallback to 'S' if username is missing */}
+                                        {student?.username?.charAt(0)?.toUpperCase() || 'S'}
                                     </div>
                                     <div className="ml-4">
                                         <h3 className="text-lg font-medium text-gray-700">{student?.username || 'Unknown Student'}</h3>
                                         <p className="text-sm text-gray-500">{student?.bio || 'No bio available'}</p>
-                                        {/* Display skills as tags */}
                                         <div className="flex flex-wrap gap-2 mt-2">
                                             {student?.skills?.map((skill, skillIndex) => (
                                                 <span
@@ -149,7 +147,6 @@ const Network = () => {
                                                 </span>
                                             ))}
                                         </div>
-                                        {/* Display interests as tags */}
                                         <div className="flex flex-wrap gap-2 mt-2">
                                             {student?.interests?.map((interest, interestIndex) => (
                                                 <span
@@ -166,7 +163,7 @@ const Network = () => {
                                     className="p-2 text-gray-500 hover:text-green-500 transition-colors"
                                     onClick={() => console.log(`Connect with ${student?.username || 'Unknown Student'}`)}
                                 >
-                                    <Link className="w-5 h-5" /> {/* Connection Icon */}
+                                    <Link className="w-5 h-5" />
                                 </button>
                             </div>
                         ))}

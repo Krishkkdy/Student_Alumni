@@ -4,6 +4,7 @@ const alumniAuth = require('../middleware/alumniAuth');
 const alumniController = require('../controllers/alumni.controller');
 
 router.get('/all-alumni',alumniController.getAllprofile);
+router.get('/profile/:id',alumniController.profileView);
 
 // Alumni profile routes
 router.get('/profile', alumniAuth, alumniController.getProfile);
