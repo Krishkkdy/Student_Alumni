@@ -39,18 +39,11 @@ const MentorshipRequestSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-const ConnectionSchema = new mongoose.Schema({
-    requester: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
-    createdAt: { type: Date, default: Date.now }
-});
 
 // Create models if they don't exist in your database yet
 const Job = mongoose.models.Job || mongoose.model('Job', JobSchema);
 const Event = mongoose.models.Event || mongoose.model('Event', EventSchema);
 const MentorshipRequest = mongoose.models.MentorshipRequest || mongoose.model('MentorshipRequest', MentorshipRequestSchema);
-const Connection = mongoose.models.Connection || mongoose.model('Connection', ConnectionSchema);
 
 // Helper function to get alumni profile
 const getAlumniProfile = async (userId) => {

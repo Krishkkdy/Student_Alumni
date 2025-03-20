@@ -6,18 +6,19 @@ import { useUser } from "../UserContext";
 import { GraduationCap } from "lucide-react";
 import MentorshipRequests from "./alumni/MentorshipRequests";
 import JobPostings from "./alumni/JobPostings";
+import Network from "./Network";
 
 // Dashboard Home Component
 const DashboardHome = () => {
   const { user } = useUser();
-  
+
   return (
     <>
       {/* Hero Section */}
       <section className="w-screen bg-blue-600 text-white text-center py-24 mt-0">
         <h2 className="text-4xl font-bold">Connect. Learn. Grow.</h2>
         <p className="mt-2 text-lg">An intelligent platform to interconnect Alumni & Students.</p>
-        
+
         <button className="mt-6 bg-white text-blue-600 px-6 py-2 rounded-md font-semibold hover:bg-gray-200">
           Get Started
         </button>
@@ -36,7 +37,13 @@ const DashboardHome = () => {
         </div>
 
         <div className="bg-white shadow-md p-6 rounded-lg w-full md:w-1/4 text-center">
-          <h3 className="text-lg font-semibold text-blue-600">Networking</h3>
+          <h3 className="text-lg font-semibold text-blue-600">
+            <Link
+            to="/dashboard/network"
+            className=""
+          >
+            Networking
+          </Link></h3>
           <p className="text-gray-600 mt-2">Connect with industry professionals.</p>
         </div>
       </section>
@@ -70,7 +77,7 @@ const Events = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold">Events</h1>
     <p className="text-gray-600 mt-2">Manage and create alumni events</p>
-    
+
     <div className="mt-6 bg-white rounded-xl shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-4">Coming Soon</h2>
       <p>The events management feature is under development.</p>
@@ -79,17 +86,25 @@ const Events = () => (
 );
 
 // Network Component
-const Network = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold">Networking</h1>
-    <p className="text-gray-600 mt-2">Connect with students and other alumni</p>
-    
-    <div className="mt-6 bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Coming Soon</h2>
-      <p>The networking feature is under development.</p>
+const Networkdet = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">
+      </h1>
+      <p className="text-gray-600 mt-2">Connect with students and other alumni</p>
+
+      <div className="mt-6 bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Coming Soon</h2>
+        <p>The networking feature is under development.</p>
+
+        {/* Link to redirect to /dashboard/network */}
+
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Settings Component
 const Settings = () => (
@@ -141,17 +156,18 @@ const Settings = () => (
 const Dashboard = ({ handleLogout }) => {
   const { user } = useUser();
   const location = useLocation();
-  
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Navbar handleLogout={handleLogout} />
-      
+
       <main className="flex-1 overflow-x-hidden overflow-y-auto">
         <Routes>
           <Route path="/" element={<DashboardHome />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/events" element={<Events />} />
           <Route path="/network" element={<Network />} />
+          <Route path="/networkdet" element={<Networkdet />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
