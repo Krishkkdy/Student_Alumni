@@ -1,63 +1,135 @@
-# Student_Alumni Interaction Platform
+# Student-Alumni Portal
 
-A comprehensive platform for facilitating interaction between students and alumni.
+A full-stack web application that facilitates interaction between students and alumni, enabling event management, networking, and knowledge sharing.
 
 ## Features
 
-- User authentication with role-based access control (student, alumni, admin)
-- Separate profile management for students and alumni
-- Mentorship request system
-- Job postings by alumni
-- Events management
-- Direct messaging between users
+### For Alumni
+- Create and manage events
+- Share job opportunities
+- Interact with students
+- Profile management
+- Virtual event hosting capabilities
 
-## Technical Details
+### For Students
+- View and register for events
+- Access job opportunities
+- Connect with alumni
+- Profile management
+- Event participation tracking
 
-### Profile Data Structure
+## Tech Stack
 
-The application now uses separate collections for student and alumni profiles:
+### Frontend
+- React.js
+- Context API for state management
+- Axios for API calls
+- Material-UI components
+- React Router for navigation
 
-- **StudentProfile**: Stores student-specific data like enrollment year, expected graduation year, major, minor, etc.
-- **AlumniProfile**: Stores alumni-specific data like graduation year, work experience, industry, mentorship preferences, etc.
-- **Profile**: Maintained for backward compatibility
+### Backend
+- Node.js
+- Express.js
+- MongoDB for database
+- JWT for authentication
+- RESTful API architecture
 
-### Migration
-
-A migration script is provided to move existing profiles to the new collections:
+## Project Structure
 
 ```
-node server/scripts/migrateProfiles.js
+student-alumni-portal/
+├── client/                 # Frontend React application
+│   ├── public/            # Static files
+│   └── src/
+│       ├── components/    # Reusable UI components
+│       ├── pages/         # Page components
+│       ├── context/       # Context providers
+│       └── utils/         # Utility functions
+│
+└── server/                # Backend Node.js application
+    ├── controllers/       # Request handlers
+    ├── models/           # Database models
+    ├── routes/           # API routes
+    └── middleware/       # Custom middleware
 ```
 
-## Setup and Installation
+## Getting Started
+
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB
+- npm or yarn
+
+### Installation
 
 1. Clone the repository
-2. Install dependencies for both client and server:
-   ```
-   cd client && npm install
-   cd ../server && npm install
-   ```
-3. Set up environment variables in `.env` file
-4. Run the server:
-   ```
-   cd server && npm start
-   ```
-5. Run the client:
-   ```
-   cd client && npm run dev
-   ```
+```bash
+git clone https://github.com/yourusername/student-alumni-portal.git
+cd student-alumni-portal
+```
+
+2. Install backend dependencies
+```bash
+cd server
+npm install
+```
+
+3. Install frontend dependencies
+```bash
+cd ../client
+npm install
+```
+
+4. Create a .env file in the server directory with the following variables:
+```
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+PORT=3000
+```
+
+5. Start the backend server
+```bash
+cd server
+nodemon server.js
+```
+
+6. Start the frontend application
+```bash
+cd client
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`
 
 ## API Endpoints
 
-- `/api/auth`: Authentication routes
-- `/api/users`: User management
-- `/api/profile`: Profile management
-- `/api/admin`: Admin functionality
-- `/api/alumni`: Alumni-specific functionality
+### Authentication
+- POST /api/auth/register - Register new user
+- POST /api/auth/login - User login
 
-## Technologies Used
+### Events
+- GET /api/events - Get all events
+- POST /api/events - Create new event
+- PUT /api/events/:id - Update event
+- DELETE /api/events/:id - Delete event
 
-- **Frontend**: React.js, Tailwind CSS
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB
-- **Authentication**: JWT
+### Users
+- GET /api/users/profile - Get user profile
+- PUT /api/users/profile - Update user profile
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Thanks to all contributors who have helped with the development
+- Special thanks to the mentors and advisors who provided guidance 
