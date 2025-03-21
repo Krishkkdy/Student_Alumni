@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-import { FaUserPlus } from 'react-icons/fa'; // Import an icon for the connect button
+import { useNavigate } from 'react-router-dom';
+import { FaUserPlus, FaCheck, FaTimes } from 'react-icons/fa';
+import ConnectionRequests from './ConnectionRequests';
+import Connections from './Connections';
 
 const Network = () => {
     const [alumni, setAlumni] = useState([]);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [connections, setConnections] = useState([]);
+    const [requests, setRequests] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,20 +22,32 @@ const Network = () => {
                     throw new Error('No token found. Please log in.');
                 }
 
+                const user = JSON.parse(localStorage.getItem('user'));
+
+                // Fetch alumni and students
                 const alumniResponse = await axios.get('http://localhost:3000/api/alumni/all-alumni', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 const studentsResponse = await axios.get('http://localhost:3000/api/student/all-students', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                // Fetch connections and requests
+                const connectionsResponse = await axios.get('http://localhost:3000/api/connections/get-connections', {
+                    params: { userId: user.profileId, userType: user.role },
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                const requestsResponse = await axios.get('http://localhost:3000/api/connections/get-requests', {
+                    params: { userId: user.profileId, userType: user.role },
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
                 setAlumni(alumniResponse.data.data);
                 setStudents(studentsResponse.data.data);
+                setConnections(connectionsResponse.data.data);
+                setRequests(requestsResponse.data.data);
                 setLoading(false);
             } catch (err) {
                 setError(err.message);
@@ -43,11 +59,60 @@ const Network = () => {
     }, []);
 
     const handleAlumniClick = (id) => {
-        navigate(`/profile/alumni/${id}`); // Navigate to alumni profile
+        navigate(`/profile/alumni/${id}`);
     };
 
     const handleStudentClick = (id) => {
-        navigate(`/profile/student/${id}`); // Navigate to student profile
+        navigate(`/profile/student/${id}`);
+    };
+
+    const handleConnect = async (receiverId, receiverType) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No token found. Please log in.');
+            }
+
+            const user = JSON.parse(localStorage.getItem('user'));
+            const senderId = user.profileId;
+            const senderType = user.role;
+
+            const response = await axios.post(
+                'http://localhost:3000/api/connections/send-request',
+                { senderId, senderType, receiverId, receiverType },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            alert(response.data.message);
+            // Refresh requests after sending a new one
+            const requestsResponse = await axios.get('http://localhost:3000/api/connections/get-requests', {
+                params: { userId: senderId, userType: senderType },
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setRequests(requestsResponse.data.data);
+        } catch (err) {
+            alert(err.message || 'Error sending request.');
+        }
+    };
+
+    const getConnectionStatus = (userId, userType) => {
+        // Check if already connected
+        const isConnected = connections.some(
+            (conn) =>
+                (conn.user1Id === userId && conn.user1Type === userType) ||
+                (conn.user2Id === userId && conn.user2Type === userType)
+        );
+        if (isConnected) return 'Connected';
+
+        // Check if a request is pending
+        const isPending = requests.some(
+            (req) =>
+                (req.senderId === userId && req.senderType === userType) ||
+                (req.receiverId === userId && req.receiverType === userType)
+        );
+        if (isPending) return 'Pending';
+
+        return 'Connect';
     };
 
     if (loading) {
@@ -71,15 +136,16 @@ const Network = () => {
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
             <h1 className="text-3xl font-bold text-gray-800 mb-8">Network</h1>
-
+         {/* <ConnectionRequests/>
+            <Connections/> */}
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Alumni Section */}
                 <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-[80vh] overflow-y-scroll">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Alumni</h2>
                     <div className="flex flex-col gap-4">
-                        {alumni.map((alum, index) => (
+                        {alumni.map((alum) => (
                             <div
-                                key={index}
+                                key={alum._id}
                                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 <div className="flex items-center">
@@ -89,7 +155,7 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3
                                             className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-500"
-                                            onClick={() => handleAlumniClick(alum._id)} // Handle alumni click
+                                            onClick={() => handleAlumniClick(alum._id)}
                                         >
                                             {alum?.username || 'Unknown Alumni'}
                                         </h3>
@@ -117,10 +183,23 @@ const Network = () => {
                                     </div>
                                 </div>
                                 <button
-                                    className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
-                                    onClick={() => console.log(`Connect with ${alum?.username || 'Unknown Alumni'}`)}
+                                    className={`p-2 ${
+                                        getConnectionStatus(alum._id, 'Alumni') === 'Connected'
+                                            ? 'text-green-500'
+                                            : getConnectionStatus(alum._id, 'Alumni') === 'Pending'
+                                            ? 'text-yellow-500'
+                                            : 'text-gray-500 hover:text-blue-500'
+                                    } transition-colors`}
+                                    onClick={() => handleConnect(alum._id, 'Alumni')}
+                                    disabled={getConnectionStatus(alum._id, 'Alumni') !== 'Connect'}
                                 >
-                                    <FaUserPlus className="w-5 h-5" /> {/* Connect icon */}
+                                    {getConnectionStatus(alum._id, 'Alumni') === 'Connected' ? (
+                                        <FaCheck className="w-5 h-5" />
+                                    ) : getConnectionStatus(alum._id, 'Alumni') === 'Pending' ? (
+                                        <FaTimes className="w-5 h-5" />
+                                    ) : (
+                                        <FaUserPlus className="w-5 h-5" />
+                                    )}
                                 </button>
                             </div>
                         ))}
@@ -131,9 +210,9 @@ const Network = () => {
                 <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-[80vh] overflow-y-scroll">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Students</h2>
                     <div className="flex flex-col gap-4">
-                        {students.map((student, index) => (
+                        {students.map((student) => (
                             <div
-                                key={index}
+                                key={student._id}
                                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 <div className="flex items-center">
@@ -143,7 +222,7 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3
                                             className="text-lg font-medium text-gray-700 cursor-pointer hover:text-green-500"
-                                            onClick={() => handleStudentClick(student._id)} // Handle student click
+                                            onClick={() => handleStudentClick(student._id)}
                                         >
                                             {student?.username || 'Unknown Student'}
                                         </h3>
@@ -171,10 +250,23 @@ const Network = () => {
                                     </div>
                                 </div>
                                 <button
-                                    className="p-2 text-gray-500 hover:text-green-500 transition-colors"
-                                    onClick={() => console.log(`Connect with ${student?.username || 'Unknown Student'}`)}
+                                    className={`p-2 ${
+                                        getConnectionStatus(student._id, 'Student') === 'Connected'
+                                            ? 'text-green-500'
+                                            : getConnectionStatus(student._id, 'Student') === 'Pending'
+                                            ? 'text-yellow-500'
+                                            : 'text-gray-500 hover:text-green-500'
+                                    } transition-colors`}
+                                    onClick={() => handleConnect(student._id, 'Student')}
+                                    disabled={getConnectionStatus(student._id, 'Student') !== 'Connect'}
                                 >
-                                    <FaUserPlus className="w-5 h-5" /> {/* Connect icon */}
+                                    {getConnectionStatus(student._id, 'Student') === 'Connected' ? (
+                                        <FaCheck className="w-5 h-5" />
+                                    ) : getConnectionStatus(student._id, 'Student') === 'Pending' ? (
+                                        <FaTimes className="w-5 h-5" />
+                                    ) : (
+                                        <FaUserPlus className="w-5 h-5" />
+                                    )}
                                 </button>
                             </div>
                         ))}

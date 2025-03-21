@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-import { FaUserPlus } from 'react-icons/fa'; // Import an icon for the connect button
+import { useNavigate } from 'react-router-dom';
+import { FaUserPlus } from 'react-icons/fa';
 
 const Network = () => {
     const [alumni, setAlumni] = useState([]);
@@ -43,12 +43,51 @@ const Network = () => {
     }, []);
 
     const handleAlumniClick = (id) => {
-        navigate(`/profile/alumni/${id}`); // Navigate to alumni profile
+        navigate(`/profile/alumni/${id}`);
     };
 
     const handleStudentClick = (id) => {
-        navigate(`/profile/student/${id}`); // Navigate to student profile
+        navigate(`/profile/student/${id}`);
     };
+
+    const handleConnect = async (receiverId, receiverType) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No token found. Please log in.');
+            }
+    
+            // Get user data from localStorage
+            const user = JSON.parse(localStorage.getItem('user'));
+            console.log(user);
+    
+            const senderId = user.profileId; // Get sender ID from user object
+            const senderType = user.role; // Get sender type from user object
+    
+            console.log("Sender ID:", senderId); // Debugging
+            console.log("Sender Type:", senderType); // Debugging
+    
+            const response = await axios.post(
+                'http://localhost:3000/api/connections/send-request',
+                {
+                    senderId,
+                    senderType,
+                    receiverId,
+                    receiverType,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+    
+            alert(response.data.message); // Show success message
+        } catch (err) {
+            alert(err.message || 'Error sending request.'); // Show error message
+        }
+    };
+
 
     if (loading) {
         return (
@@ -89,7 +128,7 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3
                                             className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-500"
-                                            onClick={() => handleAlumniClick(alum._id)} // Handle alumni click
+                                            onClick={() => handleAlumniClick(alum._id)}
                                         >
                                             {alum?.username || 'Unknown Alumni'}
                                         </h3>
@@ -118,7 +157,7 @@ const Network = () => {
                                 </div>
                                 <button
                                     className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
-                                    onClick={() => console.log(`Connect with ${alum?.username || 'Unknown Alumni'}`)}
+                                    onClick={() => handleConnect(alum._id, 'Alumni')} // Send request to alumni
                                 >
                                     <FaUserPlus className="w-5 h-5" /> {/* Connect icon */}
                                 </button>
@@ -143,7 +182,7 @@ const Network = () => {
                                     <div className="ml-4">
                                         <h3
                                             className="text-lg font-medium text-gray-700 cursor-pointer hover:text-green-500"
-                                            onClick={() => handleStudentClick(student._id)} // Handle student click
+                                            onClick={() => handleStudentClick(student._id)}
                                         >
                                             {student?.username || 'Unknown Student'}
                                         </h3>
@@ -172,7 +211,7 @@ const Network = () => {
                                 </div>
                                 <button
                                     className="p-2 text-gray-500 hover:text-green-500 transition-colors"
-                                    onClick={() => console.log(`Connect with ${student?.username || 'Unknown Student'}`)}
+                                    onClick={() => handleConnect(student._id, 'Student')} // Send request to student
                                 >
                                     <FaUserPlus className="w-5 h-5" /> {/* Connect icon */}
                                 </button>

@@ -28,6 +28,7 @@ const userRoutes = require('./routes/user.routes');
 const profileRoutes = require('./routes/profileRoutes');
 const adminRoutes = require('./routes/admin');
 const alumniRoutes = require('./routes/alumni');
+const jobRoutes = require('./routes/jobRoutes');
 const studentRoutes = require('./routes/student.Routes');
 const connectionRoutes = require('./routes/connectionRoutes');
 
@@ -37,7 +38,8 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/student',studentRoutes);
-app.use('/api/connection',connectionRoutes);
+app.use('/api/connections',connectionRoutes);
+//app.use('/api/alumni/jobs', jobRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -168,8 +168,16 @@ const updateProfile = async (req, res) => {
     profile.fullName = req.body.fullName || profile.fullName;
     profile.email = req.body.email || profile.email;
     profile.bio = req.body.bio || profile.bio;
-    profile.skills = req.body.skills || profile.skills;
-    profile.interests = req.body.interests || profile.interests;
+    
+    // Parse and handle skills and interests arrays
+    try {
+      profile.skills = Array.isArray(JSON.parse(req.body.skills)) ? JSON.parse(req.body.skills).filter(Boolean) : [];
+      profile.interests = Array.isArray(JSON.parse(req.body.interests)) ? JSON.parse(req.body.interests).filter(Boolean) : [];
+    } catch (e) {
+      profile.skills = [];
+      profile.interests = [];
+    }
+    
     profile.linkedinProfile = req.body.linkedinProfile || profile.linkedinProfile;
     
     // Update role-specific fields
@@ -194,7 +202,7 @@ const updateProfile = async (req, res) => {
     // Handle file uploads
     if (req.files) {
       if (req.files.resume) {
-        profile.resume = `/uploads/resumes/${req.files.resume[0].filename}`;
+        profile.resume =` /uploads/resumes/${req.files.resume[0].filename}`;
       }
       if (req.files.profileImage) {
         profile.profileImage = `/uploads/profileImages/${req.files.profileImage[0].filename}`;
@@ -212,8 +220,16 @@ const updateProfile = async (req, res) => {
     generalProfile.fullName = req.body.fullName || generalProfile.fullName;
     generalProfile.email = req.body.email || generalProfile.email;
     generalProfile.bio = req.body.bio || generalProfile.bio;
-    generalProfile.skills = req.body.skills || generalProfile.skills;
-    generalProfile.interests = req.body.interests || generalProfile.interests;
+    
+    // Parse and handle skills and interests arrays for general profile
+    try {
+      generalProfile.skills = Array.isArray(JSON.parse(req.body.skills)) ? JSON.parse(req.body.skills).filter(Boolean) : [];
+      generalProfile.interests = Array.isArray(JSON.parse(req.body.interests)) ? JSON.parse(req.body.interests).filter(Boolean) : [];
+    } catch (e) {
+      generalProfile.skills = [];
+      generalProfile.interests = [];
+    }
+    
     generalProfile.linkedinProfile = req.body.linkedinProfile || generalProfile.linkedinProfile;
     
     if (role === 'alumni') {
@@ -286,4 +302,4 @@ module.exports = {
   postProfile,
   updateProfile,
   deleteProfile,
-}; 
+};

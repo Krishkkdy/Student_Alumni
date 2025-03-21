@@ -7,21 +7,25 @@ const alumniAuth = async (req, res, next) => {
         const token = req.header('Authorization')?.replace('Bearer ', '');
         
         if (!token) {
+            console.log('No token provided'); // Debugging
             return res.status(401).json({ message: 'No authentication token, access denied' });
         }
 
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'harshhhh');
-        
+        console.log('Decoded token:', decoded); // Debugging
+
         // Get user from database
         const user = await User.findById(decoded.userId);
         
         if (!user) {
+            console.log('User not found for token:', decoded.userId); // Debugging
             return res.status(401).json({ message: 'User not found' });
         }
 
         // Check if user is an alumni
         if (user.role !== 'alumni') {
+            console.log('User role is not alumni:', user.role); // Debugging
             return res.status(403).json({ message: 'Access denied. Alumni privileges required.' });
         }
 
@@ -29,9 +33,9 @@ const alumniAuth = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        console.error('Auth error:', error);
+        console.error('Auth error:', error); // Debugging
         res.status(401).json({ message: 'Token is invalid' });
     }
 };
 
-module.exports = alumniAuth; 
+module.exports = alumniAuth;

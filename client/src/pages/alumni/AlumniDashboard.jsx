@@ -29,6 +29,8 @@ import Network from './Network';
 import Profile from '../Profile';
 import EditProfile from '../EditProfile';
 import ProfileView from './ProfileView';
+import ConnectionRequests from './ConnectionRequests';
+import Connections from './Connections';
 
 // Alumni Navbar Component
 const AlumniNavbar = ({ handleLogout }) => {
@@ -485,7 +487,8 @@ const AlumniDashboard = ({ handleLogout }) => {
           <Route path="/network/*" element={<Network />} />
           <Route path="/settings" element={<AlumniSettings />} />
           <Route path="/profile/:id" element={<ProfileView />} />
-
+          <Route path="/connection-requests" element={<ConnectionRequests />} />
+          <Route path="/connections" element={<Connections />} />
         </Routes>
       </main>
     </div>

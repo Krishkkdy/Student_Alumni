@@ -9,7 +9,7 @@ const requestSchema = new mongoose.Schema(
     },
     senderType: {
       type: String,
-      enum: ["Alumni", "Student"], // Sender can be either Alumni or Student
+      enum: ["Alumni", "Student","alumni", "student"], // Sender can be either Alumni or Student
       required: true,
     },
     receiverId: {
@@ -19,7 +19,7 @@ const requestSchema = new mongoose.Schema(
     },
     receiverType: {
       type: String,
-      enum: ["Alumni", "Student"], // Receiver can be either Alumni or Student
+      enum: ["Alumni", "Student","alumni", "student"], // Receiver can be either Alumni or Student
       required: true,
     },
     status: {

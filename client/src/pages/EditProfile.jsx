@@ -256,8 +256,8 @@ const EditProfile = () => {
       formData.append('username', profileData.username);
       formData.append('bio', profileData.bio);
       formData.append('linkedinProfile', profileData.linkedinProfile);
-      formData.append('skills', JSON.stringify(profileData.skills));
-      formData.append('interests', JSON.stringify(profileData.interests));
+      formData.append('skills', JSON.stringify(Array.isArray(profileData.skills) ? profileData.skills.filter(Boolean) : []));
+      formData.append('interests', JSON.stringify(Array.isArray(profileData.interests) ? profileData.interests.filter(Boolean) : []));
       
       // Add role-specific fields
       if (isStudent) {

@@ -15,7 +15,7 @@ router.get('/mentorship/requests', alumniAuth, alumniController.getMentorshipReq
 router.post('/mentorship/respond/:requestId', alumniAuth, alumniController.respondToMentorshipRequest);
 router.get('/mentorship/active', alumniAuth, alumniController.getActiveMentorships);
 
-// Job posting routes
+//Job posting routes
 router.post('/jobs', alumniAuth, alumniController.createJobPosting);
 router.get('/jobs', alumniAuth, alumniController.getMyJobPostings);
 router.put('/jobs/:jobId', alumniAuth, alumniController.updateJobPosting);

@@ -3,7 +3,7 @@ const AlumniProfile = require('../models/AlumniProfile');
 const mongoose = require('mongoose');
 
 // Create models for the alumni functionality
-// These would typically be in separate model files
+// // These would typically be in separate model files
 const JobSchema = new mongoose.Schema({
     title: { type: String, required: true },
     company: { type: String, required: true },
