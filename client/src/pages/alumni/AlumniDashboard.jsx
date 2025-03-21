@@ -154,12 +154,6 @@ const AlumniDashboard = ({ handleLogout }) => {
           <Route path="/jobs/*" element={<JobPostings />} />
           <Route path="/events/*" element={<Events />} />
           <Route path="/network/*" element={<Network />} />
-<<<<<<< HEAD
-          <Route path="/settings" element={<AlumniSettings />} />
-          <Route path="/profile/:id" element={<ProfileView />} />
-          <Route path="/connection-requests" element={<ConnectionRequests />} />
-          <Route path="/connections" element={<Connections />} />
-=======
           <Route path="/profile-view/:id" element={<ProfileView />} />
 >>>>>>> 01d80a6e7e3289d88b7270794a51fcbe833a0595
         </Routes>
